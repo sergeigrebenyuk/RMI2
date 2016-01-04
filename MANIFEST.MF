@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.9.4
+Created-By: 1.8.0_60-b27 (Oracle Corporation)
+Class-Path: lib/swing-layout-1.0.4.jar lib/org-jdesktop-layout.jar
+
