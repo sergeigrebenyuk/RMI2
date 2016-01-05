@@ -164,6 +164,7 @@ public class JRMIProcessor {
 }
 boolean AnalyzeData()
 {
+    /*
     if (JOptionPane.showConfirmDialog(null,"Close previous data?", "Close previous data?", JOptionPane.YES_NO_OPTION) 
                         == JOptionPane.YES_OPTION) {
         dataStore.close();
@@ -171,7 +172,7 @@ boolean AnalyzeData()
         dataDisplay.forceClosed();
         refDisplay.forceClosed();            
     }
-
+    */
     //lastProcessed = Integer.valueOf(rmi.rmi_form.eLastFrame.getText());
     lastProcessed = 1;
        
@@ -274,7 +275,7 @@ boolean AnalyzeData()
     // channels for GFP bleed-through
     gfp_cells = new double[nG]; //allocate storage for GFP intencities
     Object raw_ref = new Object();
-    Image gfp_img = refStore.getImage(builder.time(0).channel(1).build());
+    Image gfp_img = refStore.getImage(builder.time(0).channel(rmi.FLT_G).build());
     raw_ref = gfp_img.getRawPixels();
     // Calculate ROIs for each GFP-expressing cell
     for(int gfpi=0; gfpi<nG; gfpi++)
