@@ -5,6 +5,7 @@
  */
 package RMI;
 
+import static ij.IJ.beep;
 import ij.gui.Plot;
 import ij.gui.PlotWindow;
 import ij.gui.Roi;
@@ -43,6 +44,7 @@ public class JRMIProcessor {
     File dataDir;
     File refDir;
     Plot gplot,rplot;
+    PlotWindow gplotWnd,rplotWnd;
     
     Datastore dataStore,dataStoreCopy;
     Datastore refStore,refStoreCopy;
@@ -77,6 +79,7 @@ public class JRMIProcessor {
     double min_g=0;
     double min_r=0;
     boolean doAnalize;
+    private boolean bOnlineAnalysis;
     
     public JRMIProcessor(RMI ctx) {
         rmi = ctx;
@@ -164,27 +167,18 @@ public class JRMIProcessor {
 }
 boolean AnalyzeData()
 {
-    /*
-    if (JOptionPane.showConfirmDialog(null,"Close previous data?", "Close previous data?", JOptionPane.YES_NO_OPTION) 
-                        == JOptionPane.YES_OPTION) {
-        dataStore.close();
-        refStore.close();
-        dataDisplay.forceClosed();
-        refDisplay.forceClosed();            
-    }
-    */
-    //lastProcessed = Integer.valueOf(rmi.rmi_form.eLastFrame.getText());
-    lastProcessed = 1;
+    bOnlineAnalysis = rmi.bOnlineAnalysis;
+    lastProcessed = 0;
        
     // Get all ROIs from ROI manager
-    if ((!rmi.bExperimentIsSetUp)&&(rmi.bOnlineAnalysis)) {JOptionPane.showMessageDialog(null,"Experimental settings are not set or initialized"); return false;} 
+    if ((!rmi.bExperimentIsSetUp)&&(bOnlineAnalysis)) {JOptionPane.showMessageDialog(null,"Experimental settings are not set or initialized"); return false;} 
     RoiManager rm = RoiManager.getInstance();
     if (rm==null){ 
         rm = new RoiManager();
     }
     Roi[] rois = rm.getRoisAsArray();
     boolean loadROI = false;
-    if (!rmi.bOnlineAnalysis){
+    if (!bOnlineAnalysis){
         if (rois.length!=0){ // There are ROIs already selected
             if (JOptionPane.showConfirmDialog(null,"Clear existing ROIs?", "Clear existing ROIs?", JOptionPane.YES_NO_OPTION) 
                         == JOptionPane.YES_OPTION) {
@@ -205,7 +199,12 @@ boolean AnalyzeData()
         
     }
     else{
+        //temporary code
+            rm.runCommand("Open",rmi.DataHome+"\\DefaultRoiSet.zip");
+            rois = rm.getRoisAsArray();
+        //temporary code ends
         if (rois.length==0){JOptionPane.showMessageDialog(null,"No ROIs to analyze"); return false;} 
+        
     }
     
     // Count the number of background, red, and green ROIs
@@ -231,7 +230,7 @@ boolean AnalyzeData()
         if (rois[i].getName().startsWith("r")) R_rois[rc++] = rois[i];
     }
     
-    if (rmi.bOnlineAnalysis)
+    if (bOnlineAnalysis)
     {
         nPoints = rmi.recCyclesTotal;
         nCh = rmi.dataNames.length; // Will process only last two channels
@@ -245,6 +244,8 @@ boolean AnalyzeData()
         Coords crds = dataStore.getMaxIndices();
         nPoints = crds.getTime()+1;
         nCh = crds.getChannel()+1; // Will process only last two channels
+        
+        lastProcessed = 1 - (dataStore.getNumImages()/nCh - crds.getTime()); // this is to reveal if the Time axis is o or 1 based
     }
     gplot = new Plot(dataStore.getSavePath()+" Green", "Time,min", "A.U.");
     rplot = new Plot(dataStore.getSavePath()+" Red", "Time,min", "A.U.");
@@ -266,7 +267,7 @@ boolean AnalyzeData()
 
     // get first image to retreive first timestamp and to initialize builder
     Image first_img = dataStore.getImage(pos);
-    start_time = first_img.getMetadata().getElapsedTimeMs();
+    start_time = 0.0;//first_img.getMetadata().getElapsedTimeMs();
     raw_data = new Object[nCh];
     
     /////////////////////////////////////////////////////////////////////////////
@@ -276,7 +277,10 @@ boolean AnalyzeData()
     gfp_cells = new double[nG]; //allocate storage for GFP intencities
     Object raw_ref = new Object();
     Image gfp_img = refStore.getImage(builder.time(0).channel(rmi.FLT_G).build());
+    if (gfp_img==null) {Logger.getAnonymousLogger().log(Level.WARNING, String.format("gfp_img == null ")); return false;}
     raw_ref = gfp_img.getRawPixels();
+    if (gfp_img.getBytesPerPixel()!=2) 
+        {JOptionPane.showMessageDialog(null,"Analyzis works only with 16-bit images. Please, change camera settings to 16-bit acquisition."); return false;} 
     // Calculate ROIs for each GFP-expressing cell
     for(int gfpi=0; gfpi<nG; gfpi++)
     {
@@ -298,24 +302,37 @@ boolean AnalyzeData()
     max_r=0;
     min_r=1000;
   
+    rplotWnd = rplot.show();
+    gplotWnd = gplot.show();
     
     doAnalize = true;
     return true;
 }
+
 boolean ProcessNextFrames()
 {
     // go over all new frames and calculate timecourses
     rmi.rmi_form.labelProgressCalc.setText("Processing...");
-    for (lastProcessed++; lastProcessed < nPoints; lastProcessed++)
+    //Logger.getAnonymousLogger().log(Level.WARNING, String.format("lastProcessed : %d\ncurCycle : %d\ndoAnalyse : %b ",lastProcessed,rmi.curCycle,doAnalize));
+    int limit = bOnlineAnalysis ? rmi.curCycle : nPoints;
+    for (; lastProcessed < limit; lastProcessed++)
     {
+                
         Image img=null;
         for(int ch=0; ch < 2; ch++)
         {
             // Take only last two channels
             img = dataStore.getImage(builder.time(lastProcessed).channel(nCh-(2-ch)).build());
+            if (img==null) {Logger.getAnonymousLogger().log(Level.WARNING, String.format("img==null ")); return false;}
             raw_data[ch] = img.getRawPixels();
             // add new time point to the time axis
-            if (ch==0) time_axis[lastProcessed] = (img.getMetadata().getElapsedTimeMs() - start_time)/60000;        
+            if (ch==0) 
+            {
+                //if (bOnlineAnalysis) 
+                    time_axis[lastProcessed] = lastProcessed*rmi.recInterval/60.;
+                // in recent builds .getElapsedTimeMs() returns null, check newer builds
+                //else time_axis[lastProcessed] = (img.getMetadata().getElapsedTimeMs() - start_time)/60000;        
+            }
         }
         // for each channel calculate mean BG from all ROI
         for(int ch=0; ch < 2; ch++)
@@ -367,38 +384,48 @@ boolean ProcessNextFrames()
         //try { sleep(10);} catch (InterruptedException ex) { Logger.getLogger(JRMIProcessor.class.getName()).log(Level.SEVERE, null, ex); }
     }
     rmi.rmi_form.eLastFrame.setText(String.valueOf(lastProcessed));
+
+    gplot = new Plot(dataStore.getSavePath()+" Green", "Time,min", "a.u.");
+    rplot = new Plot(dataStore.getSavePath()+" Red", "Time,min", "a.u.");
     
     //plot.setLimits(0, time_axis[time_axis.length-1], 0, max_r>max_g?max_r:max_g);
-    gplot.setLimits(0, time_axis[time_axis.length-1], min_g, max_g);
-    rplot.setLimits(0, time_axis[time_axis.length-1], min_r, max_r);
+    gplot.setLimits(0, time_axis[lastProcessed-1], min_g, max_g); gplot.draw();
+    rplot.setLimits(0, time_axis[lastProcessed-1], min_r, max_r); rplot.draw();
     
     //double buf[][] = new double[G_rois.length+R_rois.length+1][time_axis.length];
     //buf[0] = time_axis;
     gplot.setColor(Color.green);
     for(int gi=0; gi<G_rois.length; gi++)
     {
-        gplot.addPoints(time_axis,rel_g_tc[gi],Plot.LINE);
+        double[] xtmp = new double[lastProcessed-1];
+        double[] ytmp = new double[lastProcessed-1];
+        System.arraycopy( time_axis, 0, xtmp, 0, lastProcessed-1 );
+        System.arraycopy( rel_g_tc[gi], 0, ytmp, 0, lastProcessed-1 );
+        gplot.addPoints(xtmp,ytmp,Plot.LINE);
         //buf[gi] = rel_g_tc[gi];
     }
-    
     gplot.setAxes(false, false, true, true, true, true, 1, (int)((max_g-min_g)/8));
-    gplot.show();
-    
+    gplotWnd.drawPlot(gplot);
+        
     rplot.setColor(Color.red);
     for(int ri=0; ri<R_rois.length; ri++)
     {
-        rplot.addPoints(time_axis,rel_r_tc[ri],Plot.LINE);
+        double[] xtmp = new double[lastProcessed-1];
+        double[] ytmp = new double[lastProcessed-1];
+        System.arraycopy( time_axis, 0, xtmp, 0, lastProcessed-1 );
+        System.arraycopy( rel_r_tc[ri], 0, ytmp, 0, lastProcessed-1 );
+        rplot.addPoints(xtmp,ytmp,Plot.LINE);
         //buf[ri+G_rois.length+1] = rel_r_tc[ri];
     }
     rplot.setAxes(false, false, true, true, true, true, 1, (int)((max_r-min_r)/8));
-    rplot.show();
+    rplotWnd.drawPlot(rplot);
     
     //Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
     //DataHandler dataHandler = new DataHandler(buf, "application/octet-stream");
     //cb.setContents(dataHandler, null);
     
     rmi.rmi_form.labelProgressCalc.setText("Idle");
-    if (!rmi.bOnlineAnalysis) doAnalize = false; // if worked on loaded data, do not wait for new data
+    if (!bOnlineAnalysis) doAnalize = false; // if worked on loaded data, do not wait for new data
     return true;
 }
 
@@ -419,8 +446,8 @@ boolean ProcessNextFrames()
                         {
                             ProcessNextFrames();
                         }
-                        Thread.sleep(50);
                     }
+                    Thread.sleep(50);
                 }
                 catch ( InterruptedException e ) { 
                     return;

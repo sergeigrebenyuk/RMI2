@@ -36,21 +36,15 @@ import javax.swing.JOptionPane;
 import mmcorej.CMMCore;
 import org.micromanager.Studio;
 import java.util.List;
-import mmcorej.TaggedImage;
-//import org.micromanager.MMPlugin;
 import org.micromanager.MenuPlugin;
-import org.micromanager.MultiStagePosition;
 import org.micromanager.data.Coords;
 import org.micromanager.data.Datastore;
 import org.micromanager.data.Image;
-import org.micromanager.data.internal.DefaultCoords;
-import org.micromanager.data.internal.DefaultMetadata;
-import org.micromanager.data.internal.DefaultPropertyMap;
+import org.micromanager.data.SummaryMetadata;
 import org.micromanager.data.internal.DefaultSummaryMetadata;
-import org.micromanager.display.DisplaySettings;
-import org.micromanager.display.DisplaySettings.DisplaySettingsBuilder;
+//import org.micromanager.data.internal.DefaultSummaryMetadata;
+//import org.micromanager.data.internal.DefaultSummaryMetadata;
 import org.micromanager.display.DisplayWindow;
-import org.micromanager.display.internal.DefaultDisplaySettings;
 import org.scijava.plugin.Plugin;
 import org.scijava.plugin.SciJavaPlugin;
 
@@ -143,9 +137,10 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
     Datastore refStore;
     DisplayWindow dataDisplay;
     DisplayWindow refDisplay;
-    DefaultSummaryMetadata.Builder data_summary;
-    DefaultSummaryMetadata.Builder ref_summary;
+     SummaryMetadata.SummaryMetadataBuilder data_summary;
+     SummaryMetadata.SummaryMetadataBuilder ref_summary;
     boolean bOnlineAnalysis;
+    String cameraDeviceName;
     
     public RMI() {
         super();
@@ -221,6 +216,8 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
         prefs.putInt("colorR",channels[FLT_R].col.getRGB() );
         
         prefs.put("stateDeviceName",stateDeviceName);
+        prefs.put("cameraDeviceName",cameraDeviceName);
+        
     }
     private void LoadSettings() throws Exception
     {
@@ -266,6 +263,8 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
         channels[FLT_G].col = new Color( prefs.getInt("colorG", Color.GREEN.getRGB()));
         channels[FLT_R].col = new Color( prefs.getInt("colorR", Color.RED.getRGB()));
         stateDeviceName = prefs.get("stateDeviceName","LPT1");
+        cameraDeviceName = prefs.get("cameraDeviceName","DCam");
+        
         //setFilterExp(FLT_TRANS);
     }
 
@@ -340,41 +339,16 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
         }
         
         //Set up acquisition
+        core.setCameraDevice(cameraDeviceName);
         core.setProperty(core.getCameraDevice(), "Binning", "1");
+        core.setProperty(core.getCameraDevice(), "BitDepth", "16");
             // check if every device is present
             // ... don't know how to do that
         
         // Create data storages and displays
         if (bWriteToDisk)
         {
-            data_summary = new DefaultSummaryMetadata.Builder();
-            data_summary.name("RMI imaging data")
-                 .prefix("data")
-                //.userName("John Doe").profileName("John's Profile")
-                //.microManagerVersion("made-up version")
-                //.metadataVersion("manual metadata").computerName("my arduino")
-                .directory(acqPath+"\\"+sAcqName)
-                .comments("Actual imaging data")
-                .channelGroup("Channels")
-                .channelNames(dataNames)
-                //.zStepUm(123456789.012345).waitInterval(-1234.5678)
-                //.customIntervalsMs(new Double[] {12.34, 56.78})
-                //.axisOrder(new String[] {"Time", "Channel"})
-                //.intendedDimensions((new DefaultCoords.Builder()).index("Time", 10).index("Channel", 2).build())
-                //.startDate("The age of Aquarius")
-                //.stagePositions(new MultiStagePosition[] {new MultiStagePosition("some xy stage", 0, 0, "some z stage", 0) })
-                //.userData((new DefaultPropertyMap.Builder()).putString("Ha ha I'm some user data", "and I'm the value").putInt("I'm a number", 42)
-                .build();
-            
-            ref_summary = new DefaultSummaryMetadata.Builder();
-            ref_summary.name("RMI reference data")
-                 .prefix("ref")
-                .directory(acqPath+"\\"+sRefName)
-                .comments("Reference stack containing all five channels as a")
-                .channelGroup("Channels")
-                .channelNames(refNames)
-                .build();
-                
+                          
 
             //DefaultCoords.Builder imageCoords = new DefaultCoords.Builder();
             //imageCoords.channel(0).stagePosition(0).time(0).z(0);
@@ -397,10 +371,38 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
         dataDisplay = app.displays().createDisplay(dataStore);
         refDisplay = app.displays().createDisplay(refStore);
         
+        data_summary =  new DefaultSummaryMetadata.Builder();
+            data_summary//.name("RMI imaging data")
+                 .prefix("data")
+                //.userName("John Doe").profileName("John's Profile")
+                //.microManagerVersion("made-up version")
+                //.metadataVersion("manual metadata").computerName("my arduino")
+                .directory(acqPath+"\\"+sAcqName)
+                //.comments("Actual imaging data")
+                .channelGroup("Channels")
+                .channelNames(dataNames)
+                //.zStepUm(123456789.012345).waitInterval(-1234.5678)
+                //.customIntervalsMs(new Double[] {12.34, 56.78})
+                //.axisOrder(new String[] {"Time", "Channel"})
+                //.intendedDimensions((new DefaultCoords.Builder()).index("Time", 10).index("Channel", 2).build())
+                //.startDate("The age of Aquarius")
+                //.stagePositions(new MultiStagePosition[] {new MultiStagePosition("some xy stage", 0, 0, "some z stage", 0) })
+                //.userData((new DefaultPropertyMap.Builder()).putString("Ha ha I'm some user data", "and I'm the value").putInt("I'm a number", 42)
+                .build();
+            
+            ref_summary = new DefaultSummaryMetadata.Builder();
+            ref_summary//.name("RMI reference data")
+                 .prefix("ref")
+                .directory(acqPath+"\\"+sRefName)
+                //.comments("Reference stack containing all five channels as a")
+                .channelGroup("Channels")
+                .channelNames(refNames)
+                .build();
+        
         refStore.setSummaryMetadata(ref_summary.build());
         dataStore.setSummaryMetadata(data_summary.build());            
-        dataStore.setSummaryMetadata(dataStore.getSummaryMetadata().copy().channelNames(dataNames).build());
-        refStore.setSummaryMetadata(refStore.getSummaryMetadata().copy().channelNames(refNames).build());
+//        dataStore.setSummaryMetadata(dataStore.getSummaryMetadata().copy().channelNames(dataNames).build());
+//        refStore.setSummaryMetadata(refStore.getSummaryMetadata().copy().channelNames(refNames).build());
         
     /*    DisplaySettingsBuilder dsb = (DisplaySettingsBuilder) dataDisplay.getDisplaySettings().copy();
         dsb = dsb.channelColors(dataCols);
@@ -505,7 +507,7 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
             }
         }
         else
-            JOptionPane.showMessageDialog(null,"Initialisation error!");
+            JOptionPane.showMessageDialog(null,"Initialization error!");
     }
 
     void deinitAcquisition() throws InterruptedException {
@@ -529,6 +531,7 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
         rmi_form.renderUI(RSTATE.REC_STOP);
         bExperimentIsSetUp = false;
         nTrialCnt++;
+        _state = RSTATE.REC_IDLE;
     }
 
     void continueExperiment() {
@@ -617,6 +620,14 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
                     Logger.getLogger(RMI.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+            if (_state == RSTATE.REC_STOP){
+                 try {
+                     deinitAcquisition();
+                     acqTask.cancel();
+                 } catch (InterruptedException ex) {
+                     Logger.getLogger(RMI.class.getName()).log(Level.SEVERE, null, ex);
+                 }
+            }
         }
     };
      public class ClockTask extends TimerTask {
@@ -629,11 +640,10 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
     };
 
     void recStop() throws InterruptedException  {
-        acqTask.cancel();
+        _state = RSTATE.REC_STOP;
         clockTask.cancel();
-        deinitAcquisition();
         rmi_form.renderUI(RSTATE.REC_STOP);
-       _state = RSTATE.REC_IDLE;
+       
     }
     void recReStart() throws Exception {
         if (InitAcquisition()==0) {return;}

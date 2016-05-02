@@ -12,6 +12,7 @@ package RMI;
 
 import static RMI.RMI.FLT_TRANS;
 import static com.google.common.math.DoubleMath.log2;
+import ij.plugin.frame.RoiManager;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -57,6 +58,7 @@ import javax.swing.JTable;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.WindowConstants;
+import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 import org.jdesktop.layout.GroupLayout;
 import org.jdesktop.layout.LayoutStyle;
@@ -136,6 +138,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         jToolBar1 = new JToolBar();
         jLabel1 = new JLabel();
         jPasswordField1 = new JPasswordField();
+        AnalizeGroup = new ButtonGroup();
         jTabbedPane1 = new JTabbedPane();
         jPanel1 = new JPanel();
         jPanel5 = new JPanel();
@@ -159,7 +162,6 @@ public class RMIControlForm extends javax.swing.JFrame {
         jLabel5 = new JLabel();
         recTime = new JFormattedTextField();
         recInterval = new JFormattedTextField();
-        bSnapRef = new JButton();
         bSnap = new JButton();
         bLive = new JButton();
         jPanel4 = new JPanel();
@@ -219,23 +221,28 @@ public class RMIControlForm extends javax.swing.JFrame {
         binRec = new JComboBox();
         stateDeviceName = new JFormattedTextField();
         jLabel23 = new JLabel();
+        cameraDeviceName = new JFormattedTextField();
+        jLabel24 = new JLabel();
         jPanel10 = new JPanel();
         jScrollPane1 = new JScrollPane();
         jTable1 = new JTable();
         bProtocolApply = new JButton();
         bProtocolDiscard = new JButton();
         jPanel11 = new JPanel();
-        analysisFile = new JFormattedTextField();
-        bAnalize = new JButton();
         jLabel26 = new JLabel();
         eLastFrame = new JFormattedTextField();
         bResetLastFrame = new JButton();
         progressCalc = new JProgressBar();
         labelProgressCalc = new JLabel();
         bGFPCorrection = new JCheckBox();
-        bCalcOnline = new JButton();
-        bLoadData = new JButton();
+        jPanel13 = new JPanel();
         jLabel28 = new JLabel();
+        analysisFile = new JFormattedTextField();
+        bLoadData = new JToggleButton();
+        jPanel12 = new JPanel();
+        bOnlineAnalysis = new JToggleButton();
+        bAnalize = new JButton();
+        bShowROIMan = new JButton();
 
         jToolBar1.setRollover(true);
 
@@ -524,18 +531,9 @@ public class RMIControlForm extends javax.swing.JFrame {
             }
         });
 
-        bSnapRef.setFont(new Font("Arial", 1, 18)); // NOI18N
-        bSnapRef.setForeground(new Color(0, 102, 51));
-        bSnapRef.setText("Snap Ref.");
-        bSnapRef.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                bSnapRefActionPerformed(evt);
-            }
-        });
-
         bSnap.setFont(new Font("Arial", 1, 18)); // NOI18N
         bSnap.setForeground(new Color(0, 102, 102));
-        bSnap.setText("Snap active");
+        bSnap.setText("Snap");
         bSnap.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 bSnapActionPerformed(evt);
@@ -557,7 +555,6 @@ public class RMIControlForm extends javax.swing.JFrame {
             .add(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .add(jPanel2Layout.createParallelGroup(GroupLayout.LEADING)
-                    .add(bSnapRef, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .add(bSnap, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .add(GroupLayout.TRAILING, jPanel2Layout.createSequentialGroup()
                         .add(jPanel2Layout.createParallelGroup(GroupLayout.LEADING)
@@ -586,10 +583,8 @@ public class RMIControlForm extends javax.swing.JFrame {
                 .addPreferredGap(LayoutStyle.RELATED)
                 .add(bSnap, GroupLayout.PREFERRED_SIZE, 36, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.RELATED)
-                .add(bSnapRef, GroupLayout.PREFERRED_SIZE, 36, GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(LayoutStyle.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .add(bLive, GroupLayout.PREFERRED_SIZE, 36, GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jPanel4.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Storage"));
@@ -770,6 +765,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         bMultiPos.setText("Use position manager");
         bMultiPos.setActionCommand("");
         bMultiPos.setAlignmentY(0.0F);
+        bMultiPos.setEnabled(false);
         bMultiPos.setMargin(new Insets(1, 2, 2, 2));
         bMultiPos.setMaximumSize(new Dimension(25, 25));
         bMultiPos.addActionListener(new ActionListener() {
@@ -779,7 +775,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         });
 
         bAutoRef.setFont(new Font("Tahoma", 0, 14)); // NOI18N
-        bAutoRef.setText("Auto reference");
+        bAutoRef.setText("Auto take reference image");
         bAutoRef.setAlignmentY(0.0F);
         bAutoRef.setMargin(new Insets(1, 2, 2, 2));
         bAutoRef.setMaximumSize(new Dimension(25, 25));
@@ -796,7 +792,6 @@ public class RMIControlForm extends javax.swing.JFrame {
                 .addContainerGap()
                 .add(jPanel1Layout.createParallelGroup(GroupLayout.LEADING)
                     .add(jPanel4, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .add(progressRec, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .add(jPanel1Layout.createSequentialGroup()
                         .add(bStart, GroupLayout.PREFERRED_SIZE, 88, GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(LayoutStyle.RELATED)
@@ -809,26 +804,26 @@ public class RMIControlForm extends javax.swing.JFrame {
                     .add(jPanel1Layout.createSequentialGroup()
                         .add(jPanel1Layout.createParallelGroup(GroupLayout.LEADING)
                             .add(jPanel1Layout.createSequentialGroup()
-                                .add(jPanel1Layout.createParallelGroup(GroupLayout.LEADING)
-                                    .add(jPanel5, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                    .add(bAutoRef, GroupLayout.PREFERRED_SIZE, 124, GroupLayout.PREFERRED_SIZE))
+                                .add(jPanel5, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(LayoutStyle.RELATED)
                                 .add(jPanel2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                            .add(bMultiPos, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                        .add(0, 0, Short.MAX_VALUE)))
+                            .add(bMultiPos, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                            .add(bAutoRef, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                        .add(0, 0, Short.MAX_VALUE))
+                    .add(progressRec, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(jPanel1Layout.createParallelGroup(GroupLayout.LEADING)
             .add(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .add(jPanel1Layout.createParallelGroup(GroupLayout.LEADING, false)
-                    .add(jPanel5, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .add(jPanel2, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(LayoutStyle.UNRELATED)
+                .add(jPanel1Layout.createParallelGroup(GroupLayout.LEADING)
+                    .add(jPanel5, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .add(jPanel2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .add(12, 12, 12)
                 .add(bAutoRef, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(LayoutStyle.UNRELATED)
+                .addPreferredGap(LayoutStyle.RELATED)
                 .add(bMultiPos, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(LayoutStyle.RELATED, 47, Short.MAX_VALUE)
+                .addPreferredGap(LayoutStyle.UNRELATED)
                 .add(jPanel4, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.RELATED)
                 .add(labelRecProgress)
@@ -841,7 +836,7 @@ public class RMIControlForm extends javax.swing.JFrame {
                         .add(bPause, GroupLayout.PREFERRED_SIZE, 36, GroupLayout.PREFERRED_SIZE)
                         .add(bStop, GroupLayout.PREFERRED_SIZE, 36, GroupLayout.PREFERRED_SIZE))
                     .add(bClose, GroupLayout.PREFERRED_SIZE, 36, GroupLayout.PREFERRED_SIZE))
-                .addContainerGap())
+                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Acquisition", jPanel1);
@@ -1219,6 +1214,18 @@ public class RMIControlForm extends javax.swing.JFrame {
         jLabel23.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         jLabel23.setText("State device name :");
 
+        cameraDeviceName.setText("DCam");
+        cameraDeviceName.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        cameraDeviceName.setVerifyInputWhenFocusTarget(false);
+        cameraDeviceName.addFocusListener(new FocusAdapter() {
+            public void focusLost(FocusEvent evt) {
+                cameraDeviceNameFocusLost(evt);
+            }
+        });
+
+        jLabel24.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        jLabel24.setText("Camera name :");
+
         GroupLayout jPanel6Layout = new GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
         jPanel6Layout.setHorizontalGroup(jPanel6Layout.createParallelGroup(GroupLayout.LEADING)
@@ -1230,17 +1237,24 @@ public class RMIControlForm extends javax.swing.JFrame {
                         .add(jPanel6Layout.createParallelGroup(GroupLayout.LEADING)
                             .add(jPanel6Layout.createSequentialGroup()
                                 .add(jPanel3, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(LayoutStyle.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .add(jPanel8, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(LayoutStyle.RELATED, 24, Short.MAX_VALUE)
+                                .add(jPanel8, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                .add(6, 6, 6))
                             .add(jPanel6Layout.createSequentialGroup()
                                 .add(jPanel7, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                                 .add(0, 0, Short.MAX_VALUE))
                             .add(jPanel6Layout.createSequentialGroup()
                                 .add(6, 6, 6)
-                                .add(jLabel23, GroupLayout.PREFERRED_SIZE, 130, GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(LayoutStyle.RELATED)
-                                .add(stateDeviceName)))
-                        .add(71, 71, 71)))
+                                .add(jPanel6Layout.createParallelGroup(GroupLayout.LEADING)
+                                    .add(jPanel6Layout.createSequentialGroup()
+                                        .add(jLabel23, GroupLayout.PREFERRED_SIZE, 130, GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(LayoutStyle.RELATED)
+                                        .add(stateDeviceName))
+                                    .add(jPanel6Layout.createSequentialGroup()
+                                        .add(jLabel24, GroupLayout.PREFERRED_SIZE, 130, GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(LayoutStyle.RELATED)
+                                        .add(cameraDeviceName)))))
+                        .add(65, 65, 65)))
                 .addContainerGap())
         );
         jPanel6Layout.setVerticalGroup(jPanel6Layout.createParallelGroup(GroupLayout.LEADING)
@@ -1255,7 +1269,11 @@ public class RMIControlForm extends javax.swing.JFrame {
                 .add(jPanel6Layout.createParallelGroup(GroupLayout.BASELINE)
                     .add(stateDeviceName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                     .add(jLabel23))
-                .add(568, 568, 568)
+                .addPreferredGap(LayoutStyle.RELATED)
+                .add(jPanel6Layout.createParallelGroup(GroupLayout.BASELINE)
+                    .add(cameraDeviceName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .add(jLabel24))
+                .add(539, 539, 539)
                 .add(jPanel7, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -1324,7 +1342,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         jPanel10Layout.setHorizontalGroup(jPanel10Layout.createParallelGroup(GroupLayout.LEADING)
             .add(jScrollPane1, GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
             .add(GroupLayout.TRAILING, jPanel10Layout.createSequentialGroup()
-                .addContainerGap(149, Short.MAX_VALUE)
+                .addContainerGap(157, Short.MAX_VALUE)
                 .add(bProtocolApply, GroupLayout.PREFERRED_SIZE, 98, GroupLayout.PREFERRED_SIZE)
                 .add(7, 7, 7)
                 .add(bProtocolDiscard)
@@ -1337,27 +1355,10 @@ public class RMIControlForm extends javax.swing.JFrame {
                 .add(jPanel10Layout.createParallelGroup(GroupLayout.BASELINE)
                     .add(bProtocolApply, GroupLayout.PREFERRED_SIZE, 36, GroupLayout.PREFERRED_SIZE)
                     .add(bProtocolDiscard, GroupLayout.PREFERRED_SIZE, 36, GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(346, Short.MAX_VALUE))
+                .addContainerGap(306, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Protocol", jPanel10);
-
-        analysisFile.setText("unnamed");
-        analysisFile.setFont(new Font("Tahoma", 0, 14)); // NOI18N
-        analysisFile.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent evt) {
-                analysisFileKeyTyped(evt);
-            }
-        });
-
-        bAnalize.setFont(new Font("Arial", 1, 18)); // NOI18N
-        bAnalize.setForeground(new Color(102, 0, 102));
-        bAnalize.setText("Run Analysis");
-        bAnalize.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                bAnalizeActionPerformed(evt);
-            }
-        });
 
         jLabel26.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         jLabel26.setText("Last processed frame :");
@@ -1394,18 +1395,23 @@ public class RMIControlForm extends javax.swing.JFrame {
         bGFPCorrection.setMargin(new Insets(1, 2, 2, 2));
         bGFPCorrection.setMaximumSize(new Dimension(25, 25));
 
-        bCalcOnline.setFont(new Font("Arial", 1, 18)); // NOI18N
-        bCalcOnline.setForeground(new Color(0, 153, 0));
-        bCalcOnline.setText("Analize online");
-        bCalcOnline.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                bCalcOnlineActionPerformed(evt);
+        jPanel13.setBorder(BorderFactory.createTitledBorder(null, "Offline analysis", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font("Tahoma", 0, 11), new Color(0, 0, 255))); // NOI18N
+        jPanel13.setName("sdfgsdfg"); // NOI18N
+
+        jLabel28.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        jLabel28.setText("Data :");
+
+        analysisFile.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        analysisFile.addKeyListener(new KeyAdapter() {
+            public void keyTyped(KeyEvent evt) {
+                analysisFileKeyTyped(evt);
             }
         });
 
+        AnalizeGroup.add(bLoadData);
         bLoadData.setFont(new Font("Arial", 1, 18)); // NOI18N
         bLoadData.setForeground(new Color(51, 102, 255));
-        bLoadData.setText("Load data");
+        bLoadData.setText("Analize Offline");
         bLoadData.setActionCommand("");
         bLoadData.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -1413,8 +1419,75 @@ public class RMIControlForm extends javax.swing.JFrame {
             }
         });
 
-        jLabel28.setFont(new Font("Tahoma", 0, 14)); // NOI18N
-        jLabel28.setText("Loaded data :");
+        GroupLayout jPanel13Layout = new GroupLayout(jPanel13);
+        jPanel13.setLayout(jPanel13Layout);
+        jPanel13Layout.setHorizontalGroup(jPanel13Layout.createParallelGroup(GroupLayout.LEADING)
+            .add(jPanel13Layout.createSequentialGroup()
+                .addContainerGap()
+                .add(jPanel13Layout.createParallelGroup(GroupLayout.LEADING)
+                    .add(GroupLayout.TRAILING, jPanel13Layout.createSequentialGroup()
+                        .add(jLabel28)
+                        .addPreferredGap(LayoutStyle.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .add(bLoadData, GroupLayout.PREFERRED_SIZE, 171, GroupLayout.PREFERRED_SIZE))
+                    .add(analysisFile))
+                .addContainerGap())
+        );
+        jPanel13Layout.setVerticalGroup(jPanel13Layout.createParallelGroup(GroupLayout.LEADING)
+            .add(jPanel13Layout.createSequentialGroup()
+                .add(7, 7, 7)
+                .add(jPanel13Layout.createParallelGroup(GroupLayout.BASELINE)
+                    .add(jLabel28)
+                    .add(bLoadData, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(LayoutStyle.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .add(analysisFile, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        jPanel12.setBorder(BorderFactory.createTitledBorder(null, "Online analysis", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font("Tahoma", 0, 11), new Color(0, 153, 0))); // NOI18N
+        jPanel12.setName("sdfgsdfg"); // NOI18N
+
+        AnalizeGroup.add(bOnlineAnalysis);
+        bOnlineAnalysis.setFont(new Font("Arial", 1, 18)); // NOI18N
+        bOnlineAnalysis.setForeground(new Color(0, 153, 0));
+        bOnlineAnalysis.setText("Analize Online");
+        bOnlineAnalysis.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                bOnlineAnalysisActionPerformed(evt);
+            }
+        });
+
+        GroupLayout jPanel12Layout = new GroupLayout(jPanel12);
+        jPanel12.setLayout(jPanel12Layout);
+        jPanel12Layout.setHorizontalGroup(jPanel12Layout.createParallelGroup(GroupLayout.LEADING)
+            .add(GroupLayout.TRAILING, jPanel12Layout.createSequentialGroup()
+                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .add(bOnlineAnalysis, GroupLayout.PREFERRED_SIZE, 171, GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
+        jPanel12Layout.setVerticalGroup(jPanel12Layout.createParallelGroup(GroupLayout.LEADING)
+            .add(jPanel12Layout.createSequentialGroup()
+                .addContainerGap()
+                .add(bOnlineAnalysis, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        bAnalize.setFont(new Font("Arial", 1, 18)); // NOI18N
+        bAnalize.setForeground(new Color(102, 0, 102));
+        bAnalize.setText("Run Analysis");
+        bAnalize.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                bAnalizeActionPerformed(evt);
+            }
+        });
+
+        bShowROIMan.setFont(new Font("Arial", 1, 12)); // NOI18N
+        bShowROIMan.setText("Show ROI Manager");
+        bShowROIMan.setActionCommand("");
+        bShowROIMan.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                bShowROIManActionPerformed(evt);
+            }
+        });
 
         GroupLayout jPanel11Layout = new GroupLayout(jPanel11);
         jPanel11.setLayout(jPanel11Layout);
@@ -1422,69 +1495,67 @@ public class RMIControlForm extends javax.swing.JFrame {
             .add(jPanel11Layout.createSequentialGroup()
                 .addContainerGap()
                 .add(jPanel11Layout.createParallelGroup(GroupLayout.LEADING)
-                    .add(jPanel11Layout.createSequentialGroup()
-                        .add(jPanel11Layout.createParallelGroup(GroupLayout.LEADING)
-                            .add(analysisFile)
-                            .add(jPanel11Layout.createSequentialGroup()
-                                .add(bCalcOnline)
-                                .addPreferredGap(LayoutStyle.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .add(bLoadData, GroupLayout.PREFERRED_SIZE, 155, GroupLayout.PREFERRED_SIZE)))
+                    .add(GroupLayout.TRAILING, jPanel11Layout.createSequentialGroup()
+                        .add(jPanel11Layout.createParallelGroup(GroupLayout.TRAILING)
+                            .add(GroupLayout.LEADING, jPanel12, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .add(jPanel13, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addContainerGap())
                     .add(jPanel11Layout.createSequentialGroup()
                         .add(jPanel11Layout.createParallelGroup(GroupLayout.LEADING)
-                            .add(progressCalc, GroupLayout.PREFERRED_SIZE, 342, GroupLayout.PREFERRED_SIZE)
-                            .add(labelProgressCalc, GroupLayout.PREFERRED_SIZE, 334, GroupLayout.PREFERRED_SIZE)
-                            .add(jLabel28)
+                            .add(jPanel11Layout.createParallelGroup(GroupLayout.TRAILING)
+                                .add(bAnalize, GroupLayout.PREFERRED_SIZE, 168, GroupLayout.PREFERRED_SIZE)
+                                .add(jPanel11Layout.createParallelGroup(GroupLayout.LEADING)
+                                    .add(progressCalc, GroupLayout.PREFERRED_SIZE, 342, GroupLayout.PREFERRED_SIZE)
+                                    .add(labelProgressCalc, GroupLayout.PREFERRED_SIZE, 334, GroupLayout.PREFERRED_SIZE)))
+                            .add(bShowROIMan, GroupLayout.PREFERRED_SIZE, 143, GroupLayout.PREFERRED_SIZE)
                             .add(jPanel11Layout.createSequentialGroup()
-                                .add(jLabel26)
-                                .add(18, 18, 18)
-                                .add(eLastFrame, GroupLayout.PREFERRED_SIZE, 79, GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(LayoutStyle.RELATED)
-                                .add(bResetLastFrame))
-                            .add(bGFPCorrection, GroupLayout.PREFERRED_SIZE, 124, GroupLayout.PREFERRED_SIZE))
-                        .add(0, 11, Short.MAX_VALUE))))
-            .add(jPanel11Layout.createSequentialGroup()
-                .add(86, 86, 86)
-                .add(bAnalize, GroupLayout.PREFERRED_SIZE, 168, GroupLayout.PREFERRED_SIZE)
-                .add(0, 0, Short.MAX_VALUE))
+                                .add(jPanel11Layout.createParallelGroup(GroupLayout.LEADING)
+                                    .add(bGFPCorrection, GroupLayout.PREFERRED_SIZE, 124, GroupLayout.PREFERRED_SIZE)
+                                    .add(jPanel11Layout.createSequentialGroup()
+                                        .add(jLabel26)
+                                        .add(18, 18, 18)
+                                        .add(eLastFrame, GroupLayout.PREFERRED_SIZE, 79, GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(LayoutStyle.RELATED)
+                                        .add(bResetLastFrame)))))
+                        .add(0, 19, Short.MAX_VALUE))))
         );
         jPanel11Layout.setVerticalGroup(jPanel11Layout.createParallelGroup(GroupLayout.LEADING)
             .add(jPanel11Layout.createSequentialGroup()
                 .addContainerGap()
-                .add(jPanel11Layout.createParallelGroup(GroupLayout.BASELINE)
-                    .add(bCalcOnline)
-                    .add(bLoadData))
+                .add(jPanel13, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.UNRELATED)
-                .add(jLabel28)
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(analysisFile, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(LayoutStyle.RELATED)
+                .add(jPanel12, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .add(18, 18, 18)
                 .add(jPanel11Layout.createParallelGroup(GroupLayout.BASELINE)
                     .add(jLabel26)
                     .add(eLastFrame, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .add(bResetLastFrame, GroupLayout.PREFERRED_SIZE, 27, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(LayoutStyle.UNRELATED)
+                    .add(bResetLastFrame))
+                .addPreferredGap(LayoutStyle.RELATED)
                 .add(bGFPCorrection, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .add(18, 18, 18)
+                .addPreferredGap(LayoutStyle.UNRELATED)
+                .add(bShowROIMan)
+                .addPreferredGap(LayoutStyle.RELATED, 211, Short.MAX_VALUE)
                 .add(bAnalize)
-                .addPreferredGap(LayoutStyle.RELATED, 376, Short.MAX_VALUE)
+                .addPreferredGap(LayoutStyle.RELATED)
                 .add(labelProgressCalc)
                 .addPreferredGap(LayoutStyle.RELATED)
                 .add(progressCalc, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
+        jPanel12.getAccessibleContext().setAccessibleName("dfsdfgsd");
+        jPanel12.getAccessibleContext().setAccessibleDescription("");
+
         jTabbedPane1.addTab("Analysis", jPanel11);
 
         GroupLayout layout = new GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.LEADING)
-            .add(layout.createSequentialGroup()
-                .add(jTabbedPane1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .add(0, 0, Short.MAX_VALUE))
+            .add(jTabbedPane1, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.LEADING)
-            .add(jTabbedPane1, GroupLayout.PREFERRED_SIZE, 663, Short.MAX_VALUE)
+            .add(jTabbedPane1, GroupLayout.PREFERRED_SIZE, 623, GroupLayout.PREFERRED_SIZE)
         );
 
         jTabbedPane1.getAccessibleContext().setAccessibleDescription("");
@@ -1526,7 +1597,7 @@ break; //stop
         //rmi.DataFile = form.format(d); // set the default name
         rmi.newDataFile();
         
-        bCalcOnline.setSelected(rmi.bOnlineAnalysis);
+        
         dataFile.setText(rmi.DataFile);
 
         recTime.setText(Float.toString(rmi.recTime));
@@ -1555,6 +1626,7 @@ break; //stop
         filterLabelR.setText(rmi.channels[rmi.FLT_R].label); 
         filterLabelG.setText(rmi.channels[rmi.FLT_G].label); 
         stateDeviceName.setText(rmi.stateDeviceName); 
+        cameraDeviceName.setText(rmi.cameraDeviceName); 
         bGCapture.setSelected(rmi.channels[rmi.FLT_G].capture); 
         bRCapture.setSelected(rmi.channels[rmi.FLT_R].capture); 
         bL1Capture.setSelected(rmi.channels[rmi.FLT_L1].capture); 
@@ -1562,6 +1634,7 @@ break; //stop
         bTransCapture.setSelected(rmi.channels[rmi.FLT_TRANS].capture); 
         bPause.setEnabled(false); bPause.setText("Pause");bPause.setForeground(brown);
         bStop.setEnabled(false);
+        bOnlineAnalysis.setSelected( rmi.bOnlineAnalysis);
         
     
     }//GEN-LAST:event_formWindowOpened
@@ -1642,10 +1715,6 @@ break; //stop
     private void zoomLiveFocusLost(FocusEvent evt) {//GEN-FIRST:event_zoomLiveFocusLost
         rmi.zoomLive = zoomLive.getText();
     }//GEN-LAST:event_zoomLiveFocusLost
-
-    private void bAutoRefActionPerformed(ActionEvent evt) {//GEN-FIRST:event_bAutoRefActionPerformed
-        rmi.bAutoRef = bAutoRef.isSelected();
-    }//GEN-LAST:event_bAutoRefActionPerformed
 
     private void bMultiPosActionPerformed(ActionEvent evt) {//GEN-FIRST:event_bMultiPosActionPerformed
         // TODO add your handling code here:
@@ -1741,10 +1810,6 @@ break; //stop
             rmi.runSnap();
         } catch (Exception ex) { Logger.getLogger(RMIControlForm.class.getName()).log(Level.SEVERE, null, ex);   }
     }//GEN-LAST:event_bSnapActionPerformed
-
-    private void bSnapRefActionPerformed(ActionEvent evt) {//GEN-FIRST:event_bSnapRefActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_bSnapRefActionPerformed
 
     private void recIntervalActionPerformed(ActionEvent evt) {//GEN-FIRST:event_recIntervalActionPerformed
         // TODO add your handling code here:
@@ -1867,13 +1932,30 @@ break; //stop
         // TODO add your handling code here:
     }//GEN-LAST:event_eLastFrameActionPerformed
 
-    private void bCalcOnlineActionPerformed(ActionEvent evt) {//GEN-FIRST:event_bCalcOnlineActionPerformed
-        rmi.bOnlineAnalysis = bCalcOnline.isSelected();
-        if (!rmi.bOnlineAnalysis) rmi.processor.doAnalize = false;
-    }//GEN-LAST:event_bCalcOnlineActionPerformed
+    private void bOnlineAnalysisActionPerformed(ActionEvent evt) {//GEN-FIRST:event_bOnlineAnalysisActionPerformed
+        rmi.bOnlineAnalysis = bOnlineAnalysis.isSelected(); 
+        
+        //if (rmi.bOnlineAnalysis)
+          //  rmi.processor.AnalyzeData();
+    }//GEN-LAST:event_bOnlineAnalysisActionPerformed
+
+    private void bAutoRefActionPerformed(ActionEvent evt) {//GEN-FIRST:event_bAutoRefActionPerformed
+        rmi.bAutoRef = bAutoRef.isSelected();
+    }//GEN-LAST:event_bAutoRefActionPerformed
+
+    private void bShowROIManActionPerformed(ActionEvent evt) {//GEN-FIRST:event_bShowROIManActionPerformed
+            RoiManager rm = RoiManager.getInstance();
+    if (rm==null){ 
+        rm = new RoiManager();
+    }
+    }//GEN-LAST:event_bShowROIManActionPerformed
+
+    private void cameraDeviceNameFocusLost(FocusEvent evt) {//GEN-FIRST:event_cameraDeviceNameFocusLost
+        rmi.cameraDeviceName = cameraDeviceName.getText();
+    }//GEN-LAST:event_cameraDeviceNameFocusLost
 
     private void bLoadDataActionPerformed(ActionEvent evt) {//GEN-FIRST:event_bLoadDataActionPerformed
-                JFileChooser chooser = new JFileChooser();
+          JFileChooser chooser = new JFileChooser();
         chooser.setCurrentDirectory(new File(rmi.DataHome));
         chooser.setDialogTitle("Choose data stack to analyse");
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -1885,7 +1967,7 @@ break; //stop
                 analysisFile.setText(chooser.getSelectedFile().getAbsolutePath());
             } catch (IOException ex) {Logger.getLogger(RMIControlForm.class.getName()).log(Level.SEVERE, null, ex);}
         }
-        bCalcOnline.setSelected(false);
+        bOnlineAnalysis.setSelected(false);
         rmi.bOnlineAnalysis = false;
     }//GEN-LAST:event_bLoadDataActionPerformed
 
@@ -1926,11 +2008,11 @@ break; //stop
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private ButtonGroup AnalizeGroup;
     private JLabel adjInterval;
     private JFormattedTextField analysisFile;
     private JButton bAnalize;
     private JCheckBox bAutoRef;
-    private JButton bCalcOnline;
     private JButton bClose;
     private JButton bDataFile;
     private JButton bDataHome;
@@ -1943,9 +2025,10 @@ break; //stop
     private JToggleButton bL2;
     private JCheckBox bL2Capture;
     private JButton bLive;
-    private JButton bLoadData;
+    private JToggleButton bLoadData;
     private JCheckBox bMultiPos;
     private JButton bNewExp;
+    private JToggleButton bOnlineAnalysis;
     private JButton bPause;
     private JButton bProtocolApply;
     private JButton bProtocolDiscard;
@@ -1953,8 +2036,8 @@ break; //stop
     private JCheckBox bRCapture;
     private JButton bResetLastFrame;
     private JButton bShowComment;
+    private JButton bShowROIMan;
     private JButton bSnap;
-    private JButton bSnapRef;
     private JButton bStart;
     private JButton bStop;
     private JToggleButton bTrans;
@@ -1962,6 +2045,7 @@ break; //stop
     private JCheckBox bWriteToDisk;
     private JComboBox binLive;
     private JComboBox binRec;
+    private JFormattedTextField cameraDeviceName;
     private JFormattedTextField channelGroup;
     private JFormattedTextField dataFile;
     private JFormattedTextField dataHome;
@@ -1996,6 +2080,7 @@ break; //stop
     private JLabel jLabel21;
     private JLabel jLabel22;
     private JLabel jLabel23;
+    private JLabel jLabel24;
     private JLabel jLabel26;
     private JLabel jLabel28;
     private JLabel jLabel4;
@@ -2007,6 +2092,8 @@ break; //stop
     private JPanel jPanel1;
     private JPanel jPanel10;
     private JPanel jPanel11;
+    private JPanel jPanel12;
+    private JPanel jPanel13;
     private JPanel jPanel2;
     private JPanel jPanel3;
     private JPanel jPanel4;
