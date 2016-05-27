@@ -268,6 +268,7 @@ boolean AnalyzeData()
     // get first image to retreive first timestamp and to initialize builder
     Image first_img = dataStore.getImage(pos);
     start_time = 0.0;//first_img.getMetadata().getElapsedTimeMs();
+    //start_time = first_img.getMetadata().getElapsedTimeMs();
     raw_data = new Object[nCh];
     
     /////////////////////////////////////////////////////////////////////////////
@@ -328,10 +329,9 @@ boolean ProcessNextFrames()
             // add new time point to the time axis
             if (ch==0) 
             {
-                //if (bOnlineAnalysis) 
-                    time_axis[lastProcessed] = lastProcessed*rmi.recInterval/60.;
-                // in recent builds .getElapsedTimeMs() returns null, check newer builds
-                //else time_axis[lastProcessed] = (img.getMetadata().getElapsedTimeMs() - start_time)/60000;        
+                 //   time_axis[lastProcessed] = lastProcessed*rmi.recInterval/60.;
+                //time_axis[lastProcessed] = (img.getMetadata().getElapsedTimeMs() - start_time)/60000;        
+                time_axis[lastProcessed] = img.getMetadata().getElapsedTimeMs()/60000;        
             }
         }
         // for each channel calculate mean BG from all ROI

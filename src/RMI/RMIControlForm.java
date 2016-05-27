@@ -164,6 +164,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         recInterval = new JFormattedTextField();
         bSnap = new JButton();
         bLive = new JButton();
+        bShutter = new JButton();
         jPanel4 = new JPanel();
         jLabel8 = new JLabel();
         jLabel9 = new JLabel();
@@ -549,6 +550,15 @@ public class RMIControlForm extends javax.swing.JFrame {
             }
         });
 
+        bShutter.setFont(new Font("Arial", 1, 18)); // NOI18N
+        bShutter.setForeground(new Color(102, 0, 102));
+        bShutter.setText("Shutter");
+        bShutter.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                bShutterActionPerformed(evt);
+            }
+        });
+
         GroupLayout jPanel2Layout = new GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(jPanel2Layout.createParallelGroup(GroupLayout.LEADING)
@@ -568,7 +578,8 @@ public class RMIControlForm extends javax.swing.JFrame {
                         .add(jPanel2Layout.createParallelGroup(GroupLayout.LEADING)
                             .add(recInterval, GroupLayout.PREFERRED_SIZE, 42, GroupLayout.PREFERRED_SIZE)
                             .add(recTime, GroupLayout.PREFERRED_SIZE, 42, GroupLayout.PREFERRED_SIZE)))
-                    .add(bLive, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .add(bLive, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .add(bShutter, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(jPanel2Layout.createParallelGroup(GroupLayout.LEADING)
@@ -584,7 +595,9 @@ public class RMIControlForm extends javax.swing.JFrame {
                 .add(bSnap, GroupLayout.PREFERRED_SIZE, 36, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.RELATED)
                 .add(bLive, GroupLayout.PREFERRED_SIZE, 36, GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(LayoutStyle.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .add(bShutter, GroupLayout.PREFERRED_SIZE, 36, GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
 
         jPanel4.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Storage"));
@@ -816,9 +829,9 @@ public class RMIControlForm extends javax.swing.JFrame {
         jPanel1Layout.setVerticalGroup(jPanel1Layout.createParallelGroup(GroupLayout.LEADING)
             .add(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .add(jPanel1Layout.createParallelGroup(GroupLayout.LEADING)
-                    .add(jPanel5, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .add(jPanel2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .add(jPanel1Layout.createParallelGroup(GroupLayout.LEADING, false)
+                    .add(jPanel5, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .add(jPanel2, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .add(12, 12, 12)
                 .add(bAutoRef, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.RELATED)
@@ -1508,16 +1521,13 @@ public class RMIControlForm extends javax.swing.JFrame {
                                     .add(progressCalc, GroupLayout.PREFERRED_SIZE, 342, GroupLayout.PREFERRED_SIZE)
                                     .add(labelProgressCalc, GroupLayout.PREFERRED_SIZE, 334, GroupLayout.PREFERRED_SIZE)))
                             .add(bShowROIMan, GroupLayout.PREFERRED_SIZE, 143, GroupLayout.PREFERRED_SIZE)
+                            .add(bGFPCorrection, GroupLayout.PREFERRED_SIZE, 124, GroupLayout.PREFERRED_SIZE)
                             .add(jPanel11Layout.createSequentialGroup()
+                                .add(jLabel26)
+                                .add(18, 18, 18)
+                                .add(eLastFrame, GroupLayout.PREFERRED_SIZE, 79, GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(LayoutStyle.RELATED)
-                                .add(jPanel11Layout.createParallelGroup(GroupLayout.LEADING)
-                                    .add(bGFPCorrection, GroupLayout.PREFERRED_SIZE, 124, GroupLayout.PREFERRED_SIZE)
-                                    .add(jPanel11Layout.createSequentialGroup()
-                                        .add(jLabel26)
-                                        .add(18, 18, 18)
-                                        .add(eLastFrame, GroupLayout.PREFERRED_SIZE, 79, GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(LayoutStyle.RELATED)
-                                        .add(bResetLastFrame)))))
+                                .add(bResetLastFrame)))
                         .add(0, 19, Short.MAX_VALUE))))
         );
         jPanel11Layout.setVerticalGroup(jPanel11Layout.createParallelGroup(GroupLayout.LEADING)
@@ -1971,6 +1981,27 @@ break; //stop
         rmi.bOnlineAnalysis = false;
     }//GEN-LAST:event_bLoadDataActionPerformed
 
+    private void bShutterActionPerformed(ActionEvent evt) {//GEN-FIRST:event_bShutterActionPerformed
+        
+          rmi.shutterOpen ^= true;
+        try {
+          
+            rmi.openShutter(rmi.shutterOpen);
+            if (rmi.shutterOpen)
+            {
+                bShutter.setText("Close");
+                bShutter.setSelected(true);
+            }
+            else
+            {
+                bShutter.setText("Open");
+                bShutter.setSelected(false);
+            }
+        } catch (Exception ex) { Logger.getLogger(RMIControlForm.class.getName()).log(Level.SEVERE, null, ex);   }
+        
+    }//GEN-LAST:event_bShutterActionPerformed
+
+    
     /**
      * @param args the command line arguments
      */
@@ -2037,6 +2068,7 @@ break; //stop
     private JButton bResetLastFrame;
     private JButton bShowComment;
     private JButton bShowROIMan;
+    private JButton bShutter;
     private JButton bSnap;
     private JButton bStart;
     private JButton bStop;

@@ -40,6 +40,8 @@ import org.micromanager.MenuPlugin;
 import org.micromanager.data.Coords;
 import org.micromanager.data.Datastore;
 import org.micromanager.data.Image;
+import org.micromanager.data.Metadata;
+import org.micromanager.data.Metadata.MetadataBuilder;
 import org.micromanager.data.SummaryMetadata;
 import org.micromanager.data.internal.DefaultSummaryMetadata;
 //import org.micromanager.data.internal.DefaultSummaryMetadata;
@@ -141,6 +143,9 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
      SummaryMetadata.SummaryMetadataBuilder ref_summary;
     boolean bOnlineAnalysis;
     String cameraDeviceName;
+    private long startMilliseconds;
+    private long elapsedMilliseconds;
+    boolean shutterOpen;
     
     public RMI() {
         super();
@@ -290,7 +295,8 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
         // data = wheel[0-A; 128-B] + speed*16 + filter position
         filterSelected = flt;
         core.setProperty(stateDeviceName, "State", String.valueOf(16 + channels[flt].filterSlot));
-        core.setProperty(core.getCameraDevice(), "Exposure", channels[flt].exposure);
+        //core.setProperty(core.getCameraDevice(), "Exposure", channels[flt].exposure);
+        core.setExposure(core.getCameraDevice(),channels[flt].exposure);
     }
     void setLiveZoom(String zoom) { 
         
@@ -605,6 +611,14 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
     public void onPluginSelected() {
         
     }
+
+    void openShutter(boolean selected) throws Exception {
+        
+        //int state = Integer.valueOf(core.getProperty(stateDeviceName, "State"));
+        //if (selected) state|=2<<13;
+        //else state&=~(2<<13);
+        //core.setProperty(stateDeviceName, "State", String.valueOf(state));
+    }
   
     public class AcqTask extends TimerTask {
         @Override
@@ -671,16 +685,18 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
                 core.sleep(shutterDelay);
                 // Snap an image. Don't display it in the snap/live display.
                 builder = builder.channel(cnt);
-                //app.core().snapImage();
-                //TaggedImage tagged = app.core().getTaggedImage();
                 Coords crds= builder.build();
                 Image image = app.live().snap(false).get(0).copyAtCoords(builder.build());
-                //Image image = app.data().convertTaggedImage(tagged,crds, null);
-                dataStore.putImage(image);
-                if (i==0) 
+                // now copy metadata and set the timestamp in it
+                MetadataBuilder md = image.getMetadata().copy();
+                if (_sweepNum==0) 
                 { 
-                    double time = image.getMetadata().getElapsedTimeMs();
+                    elapsedMilliseconds = startMilliseconds = System.currentTimeMillis();
                 }
+                else 
+                    elapsedMilliseconds = System.currentTimeMillis() - startMilliseconds;
+                md.elapsedTimeMs((double)elapsedMilliseconds);
+                dataStore.putImage(image.copyWithMetadata(md.build()));
                 cnt++;
             }
         }
