@@ -24,5 +24,9 @@ Coming soon:
 1. In order to use the plugin, place RMI2.jar to \Micro-Manager-2.0beta\mmplugins
 1. Create \Micro-Manager-2.0beta\mmplugins\lib folder and place org-jdesktop-layout.jar and swing-layout-1.0.4.jar to it.
 
+Alternatively, simply download precompiled RMI.jar (along with putting 
+org-jdesktop-layout.jar and swing-layout-1.0.4.jar to \mmplugins\lib 
+folder) and run uManager
+
 ###Enjoy and contribute!
 

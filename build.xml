@@ -76,6 +76,7 @@
        <!--System.out.println(info);-->
        <echo message="--Copied MM plugin JAR to basedir: ${basedir}" />
        <copy file="${basedir}/${dist.jar}" toDir="${pluginsDir}" />
+       <copy file="${basedir}/${dist.jar}" toDir="${basedir}" />
        </target>    
 <!--
    <target name="-pre-init">
