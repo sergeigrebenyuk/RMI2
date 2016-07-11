@@ -22,7 +22,8 @@ Coming soon:
 1. JDK 1.6 (for uManager plugins) and Netbeans 8+/JDK1.7+ installed. This is a Netbeans project, and is expected to compile without problems.
 1. If you don’t have experience in writing plugins for uManager, please read [this](https://micro-manager.org/wiki/Micro-Manager_Programming%20Guide) and [this](https://micro-manager.org/wiki/Version_2.0#Important_Note_Regarding_Netbeans) before trying to compile the project. 
 1. In order to use the plugin, place RMI2.jar to \Micro-Manager-2.0beta\mmplugins
-1. Create \Micro-Manager-2.0beta\mmplugins\lib folder and place org-jdesktop-layout.jar and swing-layout-1.0.4.jar to it.
+1. Create \Micro-Manager-2.0beta\mmplugins\lib folder and place [org-jdesktop-layout.jar](https://github.com/sergeigrebenyuk/RMI2/blob/master/org-jdesktop-layout.jar) and [swing-layout-1.0.4.jar](https://github.com/sergeigrebenyuk/RMI2/blob/master/swing-layout-1.0.4.jar) to it.
+
 
 Alternatively, simply download precompiled RMI.jar (along with putting 
 org-jdesktop-layout.jar and swing-layout-1.0.4.jar to \mmplugins\lib 
