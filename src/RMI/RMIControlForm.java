@@ -12,12 +12,15 @@ package RMI;
 
 import static RMI.RMI.FLT_TRANS;
 import static com.google.common.math.DoubleMath.log2;
+import ij.gui.OvalRoi;
+import ij.gui.Roi;
 import ij.plugin.frame.RoiManager;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
+import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
@@ -28,6 +31,8 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import static java.awt.event.KeyEvent.VK_F5;
 import static java.awt.event.KeyEvent.VK_F9;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -52,11 +57,14 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JProgressBar;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
+import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
@@ -68,7 +76,9 @@ import org.jdesktop.layout.LayoutStyle;
  *
  * @author sg
  */
-public class RMIControlForm extends javax.swing.JFrame {
+public class RMIControlForm extends javax.swing.JFrame 
+implements MouseListener
+{
 
     private RMI rmi;
     Color brown = new Color(179,79,50);  
@@ -135,10 +145,8 @@ public class RMIControlForm extends javax.swing.JFrame {
     private void initComponents() {
 
         bFilterGroup = new ButtonGroup();
-        jToolBar1 = new JToolBar();
-        jLabel1 = new JLabel();
-        jPasswordField1 = new JPasswordField();
         AnalizeGroup = new ButtonGroup();
+        buttonGroupAnalysisType = new ButtonGroup();
         jTabbedPane1 = new JTabbedPane();
         jPanel1 = new JPanel();
         jPanel5 = new JPanel();
@@ -185,6 +193,33 @@ public class RMIControlForm extends javax.swing.JFrame {
         bClose = new JButton();
         bMultiPos = new JCheckBox();
         bAutoRef = new JCheckBox();
+        jPanel11 = new JPanel();
+        jLabel26 = new JLabel();
+        eLastFrame = new JFormattedTextField();
+        progressCalc = new JProgressBar();
+        labelProgressCalc = new JLabel();
+        bGFPCorrection = new JCheckBox();
+        bAnalize = new JButton();
+        bShowROIMan = new JButton();
+        jPanel14 = new JPanel();
+        jLabel30 = new JLabel();
+        jLabel2 = new JLabel();
+        jLabel3 = new JLabel();
+        jLabel25 = new JLabel();
+        jLabel27 = new JLabel();
+        jLabel29 = new JLabel();
+        jRadioButton1 = new JRadioButton();
+        jRadioButton2 = new JRadioButton();
+        bLoadData = new JToggleButton();
+        bOnlineAnalysis = new JToggleButton();
+        analysisFile = new JFormattedTextField();
+        jLabel28 = new JLabel();
+        bAddRedROIs = new JToggleButton();
+        nAddROIs = new JFormattedTextField();
+        bAddGreenROIs = new JToggleButton();
+        jLabel38 = new JLabel();
+        bAddGreenROIs1 = new JToggleButton();
+        jLabel39 = new JLabel();
         jPanel6 = new JPanel();
         jPanel3 = new JPanel();
         zoomLive = new JFormattedTextField();
@@ -224,32 +259,23 @@ public class RMIControlForm extends javax.swing.JFrame {
         jLabel23 = new JLabel();
         cameraDeviceName = new JFormattedTextField();
         jLabel24 = new JLabel();
+        tweakExpBin1 = new JFormattedTextField();
+        jLabel32 = new JLabel();
+        jLabel31 = new JLabel();
+        jLabel33 = new JLabel();
+        jLabel34 = new JLabel();
+        tweakExpBin2 = new JFormattedTextField();
+        jLabel35 = new JLabel();
+        jLabel36 = new JLabel();
+        tweakExpBin4 = new JFormattedTextField();
+        jLabel37 = new JLabel();
+        tweakExp = new JCheckBox();
         jPanel10 = new JPanel();
         jScrollPane1 = new JScrollPane();
         jTable1 = new JTable();
         bProtocolApply = new JButton();
         bProtocolDiscard = new JButton();
-        jPanel11 = new JPanel();
-        jLabel26 = new JLabel();
-        eLastFrame = new JFormattedTextField();
-        bResetLastFrame = new JButton();
-        progressCalc = new JProgressBar();
-        labelProgressCalc = new JLabel();
-        bGFPCorrection = new JCheckBox();
-        jPanel13 = new JPanel();
-        jLabel28 = new JLabel();
-        analysisFile = new JFormattedTextField();
-        bLoadData = new JToggleButton();
-        jPanel12 = new JPanel();
-        bOnlineAnalysis = new JToggleButton();
-        bAnalize = new JButton();
-        bShowROIMan = new JButton();
-
-        jToolBar1.setRollover(true);
-
-        jLabel1.setText("jLabel1");
-
-        jPasswordField1.setText("jPasswordField1");
+        jTextField2 = new JTextField();
 
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("Ratiometric imaging");
@@ -270,16 +296,18 @@ public class RMIControlForm extends javax.swing.JFrame {
             }
         });
 
+        jTabbedPane1.setDoubleBuffered(true);
         jTabbedPane1.setName("Acquisition"); // NOI18N
         jTabbedPane1.setPreferredSize(new Dimension(368, 602));
 
         jPanel1.setName(""); // NOI18N
 
-        jPanel5.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Exposure, ms"));
+        jPanel5.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Channels"));
         jPanel5.setName(""); // NOI18N
 
         expL2.setBackground(new Color(207, 225, 255));
         expL2.setText("250");
+        expL2.setToolTipText("Exposure time, ms");
         expL2.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         expL2.addFocusListener(new FocusAdapter() {
             public void focusLost(FocusEvent evt) {
@@ -288,6 +316,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         });
 
         expTrans.setText("7");
+        expTrans.setToolTipText("Exposure time, ms");
         expTrans.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         expTrans.addFocusListener(new FocusAdapter() {
             public void focusLost(FocusEvent evt) {
@@ -297,6 +326,7 @@ public class RMIControlForm extends javax.swing.JFrame {
 
         expL1.setBackground(new Color(231, 216, 255));
         expL1.setText("250");
+        expL1.setToolTipText("Exposure time, ms");
         expL1.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         expL1.addFocusListener(new FocusAdapter() {
             public void focusLost(FocusEvent evt) {
@@ -308,7 +338,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         bL2.setFont(new Font("Arial", 1, 18)); // NOI18N
         bL2.setForeground(new Color(51, 102, 255));
         bL2.setText("L2");
-        bL2.setToolTipText("");
+        bL2.setToolTipText("Select active channel");
         bL2.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 bL2ActionPerformed(evt);
@@ -319,7 +349,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         bL1.setFont(new Font("Arial", 1, 18)); // NOI18N
         bL1.setForeground(new Color(51, 102, 255));
         bL1.setText("L1");
-        bL1.setToolTipText("");
+        bL1.setToolTipText("Select active channel");
         bL1.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 bL1ActionPerformed(evt);
@@ -330,7 +360,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         bTrans.setFont(new Font("Arial", 1, 18)); // NOI18N
         bTrans.setForeground(new Color(153, 153, 0));
         bTrans.setText("Trans");
-        bTrans.setToolTipText("");
+        bTrans.setToolTipText("Select active channel");
         bTrans.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 bTransActionPerformed(evt);
@@ -341,7 +371,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         bG.setFont(new Font("Arial", 1, 18)); // NOI18N
         bG.setForeground(new Color(0, 153, 0));
         bG.setText("G");
-        bG.setToolTipText("");
+        bG.setToolTipText("Select active channel");
         bG.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 bGActionPerformed(evt);
@@ -352,7 +382,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         bR.setFont(new Font("Arial", 1, 18)); // NOI18N
         bR.setForeground(new Color(255, 0, 51));
         bR.setText("R");
-        bR.setToolTipText("");
+        bR.setToolTipText("Select active channel");
         bR.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 bRActionPerformed(evt);
@@ -361,6 +391,7 @@ public class RMIControlForm extends javax.swing.JFrame {
 
         expG.setBackground(new Color(204, 255, 204));
         expG.setText("100");
+        expG.setToolTipText("Exposure time, ms");
         expG.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         expG.addFocusListener(new FocusAdapter() {
             public void focusLost(FocusEvent evt) {
@@ -370,6 +401,7 @@ public class RMIControlForm extends javax.swing.JFrame {
 
         expR.setBackground(new Color(255, 204, 204));
         expR.setText("100");
+        expR.setToolTipText("Exposure time, ms");
         expR.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         expR.addFocusListener(new FocusAdapter() {
             public void focusLost(FocusEvent evt) {
@@ -377,6 +409,7 @@ public class RMIControlForm extends javax.swing.JFrame {
             }
         });
 
+        bTransCapture.setToolTipText("Include channel into acquisition");
         bTransCapture.setAlignmentY(0.0F);
         bTransCapture.setMargin(new Insets(1, 2, 2, 2));
         bTransCapture.setMaximumSize(new Dimension(25, 25));
@@ -386,6 +419,7 @@ public class RMIControlForm extends javax.swing.JFrame {
             }
         });
 
+        bGCapture.setToolTipText("Include channel into acquisition");
         bGCapture.setAlignmentY(0.0F);
         bGCapture.setMargin(new Insets(1, 2, 2, 2));
         bGCapture.setMaximumSize(new Dimension(25, 25));
@@ -395,6 +429,7 @@ public class RMIControlForm extends javax.swing.JFrame {
             }
         });
 
+        bRCapture.setToolTipText("Include channel into acquisition");
         bRCapture.setAlignmentY(0.0F);
         bRCapture.setMargin(new Insets(1, 2, 2, 2));
         bRCapture.setMaximumSize(new Dimension(25, 25));
@@ -404,6 +439,7 @@ public class RMIControlForm extends javax.swing.JFrame {
             }
         });
 
+        bL1Capture.setToolTipText("Include channel into acquisition");
         bL1Capture.setAlignmentY(0.0F);
         bL1Capture.setMargin(new Insets(1, 2, 2, 2));
         bL1Capture.setMaximumSize(new Dimension(25, 25));
@@ -413,6 +449,7 @@ public class RMIControlForm extends javax.swing.JFrame {
             }
         });
 
+        bL2Capture.setToolTipText("Include channel into acquisition");
         bL2Capture.setAlignmentY(0.0F);
         bL2Capture.setMargin(new Insets(1, 2, 2, 2));
         bL2Capture.setMaximumSize(new Dimension(25, 25));
@@ -509,6 +546,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         jLabel5.setText("Period, s :");
 
         recTime.setText("30");
+        recTime.setToolTipText("Approximate time of acquisition");
         recTime.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         recTime.setInheritsPopupMenu(true);
         recTime.setVerifyInputWhenFocusTarget(false);
@@ -519,6 +557,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         });
 
         recInterval.setText("2");
+        recInterval.setToolTipText("Period of taking image frames");
         recInterval.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         recInterval.setVerifyInputWhenFocusTarget(false);
         recInterval.addFocusListener(new FocusAdapter() {
@@ -535,6 +574,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         bSnap.setFont(new Font("Arial", 1, 18)); // NOI18N
         bSnap.setForeground(new Color(0, 102, 102));
         bSnap.setText("Snap");
+        bSnap.setToolTipText("Snapshot from active channel");
         bSnap.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 bSnapActionPerformed(evt);
@@ -544,6 +584,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         bLive.setFont(new Font("Arial", 1, 18)); // NOI18N
         bLive.setForeground(new Color(51, 102, 255));
         bLive.setText("Live");
+        bLive.setToolTipText("Streaming from active channel");
         bLive.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 bLiveActionPerformed(evt);
@@ -553,6 +594,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         bShutter.setFont(new Font("Arial", 1, 18)); // NOI18N
         bShutter.setForeground(new Color(102, 0, 102));
         bShutter.setText("Shutter");
+        bShutter.setEnabled(false);
         bShutter.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 bShutterActionPerformed(evt);
@@ -610,6 +652,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         jLabel9.setText("Data home :");
 
         dataHome.setText("d:\\Data");
+        dataHome.setToolTipText("Experiments will be stored here");
         dataHome.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         dataHome.addFocusListener(new FocusAdapter() {
             public void focusLost(FocusEvent evt) {
@@ -618,6 +661,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         });
 
         bDataHome.setText("...");
+        bDataHome.setToolTipText("Select home folder");
         bDataHome.setMargin(new Insets(5, 14, 2, 14));
         bDataHome.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -629,6 +673,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         jLabel10.setText("Acq. name :");
 
         dataFile.setText("unnamed");
+        dataFile.setToolTipText("Current acquisition name");
         dataFile.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         dataFile.addKeyListener(new KeyAdapter() {
             public void keyTyped(KeyEvent evt) {
@@ -639,6 +684,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         bDataFile.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         bDataFile.setForeground(new Color(153, 51, 0));
         bDataFile.setText("₪");
+        bDataFile.setToolTipText("Create new name based on date and time");
         bDataFile.setActionCommand("New name");
         bDataFile.setMargin(new Insets(2, 5, 2, 5));
         bDataFile.addActionListener(new ActionListener() {
@@ -647,6 +693,7 @@ public class RMIControlForm extends javax.swing.JFrame {
             }
         });
 
+        bWriteToDisk.setToolTipText("If checked, acquired data will be immediately stored to disk");
         bWriteToDisk.setAlignmentY(0.0F);
         bWriteToDisk.setMargin(new Insets(1, 2, 2, 2));
         bWriteToDisk.setMaximumSize(new Dimension(25, 25));
@@ -658,6 +705,7 @@ public class RMIControlForm extends javax.swing.JFrame {
 
         bNewExp.setFont(new Font("Arial", 1, 14)); // NOI18N
         bNewExp.setText("New Exp.");
+        bNewExp.setToolTipText("Create storage for new experiment");
         bNewExp.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 bNewExpActionPerformed(evt);
@@ -666,12 +714,14 @@ public class RMIControlForm extends javax.swing.JFrame {
 
         bShowComment.setFont(new Font("Arial", 1, 14)); // NOI18N
         bShowComment.setText("Comments");
+        bShowComment.setToolTipText("Open comment window");
         bShowComment.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 bShowCommentActionPerformed(evt);
             }
         });
 
+        adjInterval.setHorizontalAlignment(SwingConstants.RIGHT);
         adjInterval.setText("Idle");
 
         GroupLayout jPanel4Layout = new GroupLayout(jPanel4);
@@ -702,14 +752,13 @@ public class RMIControlForm extends javax.swing.JFrame {
                                 .add(jLabel8)
                                 .addPreferredGap(LayoutStyle.RELATED)
                                 .add(bWriteToDisk, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
-                        .add(jPanel4Layout.createParallelGroup(GroupLayout.LEADING)
+                        .add(jPanel4Layout.createParallelGroup(GroupLayout.TRAILING)
                             .add(jPanel4Layout.createSequentialGroup()
                                 .add(83, 83, 83)
                                 .add(bShowComment, GroupLayout.PREFERRED_SIZE, 1, Short.MAX_VALUE))
-                            .add(GroupLayout.TRAILING, jPanel4Layout.createSequentialGroup()
+                            .add(jPanel4Layout.createSequentialGroup()
                                 .addPreferredGap(LayoutStyle.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .add(adjInterval, GroupLayout.PREFERRED_SIZE, 126, GroupLayout.PREFERRED_SIZE)
-                                .add(24, 24, 24)))))
+                                .add(adjInterval, GroupLayout.PREFERRED_SIZE, 150, GroupLayout.PREFERRED_SIZE)))))
                 .addContainerGap())
         );
         jPanel4Layout.setVerticalGroup(jPanel4Layout.createParallelGroup(GroupLayout.LEADING)
@@ -738,6 +787,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         bStart.setFont(new Font("Arial", 1, 18)); // NOI18N
         bStart.setForeground(new Color(0, 102, 0));
         bStart.setText("Run!");
+        bStart.setToolTipText("Start acquisition");
         bStart.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 bStartActionPerformed(evt);
@@ -747,19 +797,22 @@ public class RMIControlForm extends javax.swing.JFrame {
         bStop.setFont(new Font("Arial", 1, 18)); // NOI18N
         bStop.setForeground(new Color(153, 0, 51));
         bStop.setText("Stop");
+        bStop.setToolTipText("Stop acquisition");
         bStop.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 bStopActionPerformed(evt);
             }
         });
 
-        progressRec.setValue(50);
+        progressRec.setToolTipText("Progress of acquisition");
+        progressRec.setValue(1);
 
         labelRecProgress.setText("Idle");
 
         bPause.setFont(new Font("Arial", 1, 18)); // NOI18N
         bPause.setForeground(new Color(0, 153, 0));
         bPause.setText("Pause");
+        bPause.setToolTipText("Pause acquisition");
         bPause.setMargin(new Insets(2, 2, 2, 2));
         bPause.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -768,6 +821,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         });
 
         bClose.setText("Exit");
+        bClose.setToolTipText("Exit program");
         bClose.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 bCloseActionPerformed(evt);
@@ -789,6 +843,7 @@ public class RMIControlForm extends javax.swing.JFrame {
 
         bAutoRef.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         bAutoRef.setText("Auto take reference image");
+        bAutoRef.setToolTipText("Take reference images from all channels before starting acquisition");
         bAutoRef.setAlignmentY(0.0F);
         bAutoRef.setMargin(new Insets(1, 2, 2, 2));
         bAutoRef.setMaximumSize(new Dimension(25, 25));
@@ -814,6 +869,7 @@ public class RMIControlForm extends javax.swing.JFrame {
                         .addPreferredGap(LayoutStyle.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .add(bClose))
                     .add(GroupLayout.TRAILING, labelRecProgress, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .add(progressRec, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .add(jPanel1Layout.createSequentialGroup()
                         .add(jPanel1Layout.createParallelGroup(GroupLayout.LEADING)
                             .add(jPanel1Layout.createSequentialGroup()
@@ -822,8 +878,7 @@ public class RMIControlForm extends javax.swing.JFrame {
                                 .add(jPanel2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
                             .add(bMultiPos, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                             .add(bAutoRef, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                        .add(0, 0, Short.MAX_VALUE))
-                    .add(progressRec, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .add(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(jPanel1Layout.createParallelGroup(GroupLayout.LEADING)
@@ -854,11 +909,309 @@ public class RMIControlForm extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("Acquisition", jPanel1);
 
+        jLabel26.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        jLabel26.setText("Last processed frame :");
+
+        eLastFrame.setText("0");
+        eLastFrame.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        eLastFrame.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                eLastFrameActionPerformed(evt);
+            }
+        });
+        eLastFrame.addKeyListener(new KeyAdapter() {
+            public void keyTyped(KeyEvent evt) {
+                eLastFrameKeyTyped(evt);
+            }
+        });
+
+        progressCalc.setToolTipText("Progress of data processing. Makes sense in offline analysis.");
+        progressCalc.setValue(1);
+
+        labelProgressCalc.setText("Idle");
+
+        bGFPCorrection.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        bGFPCorrection.setText("GFP correction");
+        bGFPCorrection.setAlignmentY(0.0F);
+        bGFPCorrection.setEnabled(false);
+        bGFPCorrection.setMargin(new Insets(1, 2, 2, 2));
+        bGFPCorrection.setMaximumSize(new Dimension(25, 25));
+
+        bAnalize.setFont(new Font("Arial", 1, 18)); // NOI18N
+        bAnalize.setForeground(new Color(102, 0, 102));
+        bAnalize.setText("Run Analysis");
+        bAnalize.setToolTipText("Surprisingly, it starts analysis");
+        bAnalize.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                bAnalizeActionPerformed(evt);
+            }
+        });
+
+        bShowROIMan.setFont(new Font("Arial", 0, 14)); // NOI18N
+        bShowROIMan.setText("Show ROI Manager");
+        bShowROIMan.setToolTipText("Display ROI Manager to add, change, store or retrieve ROIs");
+        bShowROIMan.setActionCommand("");
+        bShowROIMan.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                bShowROIManActionPerformed(evt);
+            }
+        });
+
+        jPanel14.setBackground(new Color(255, 255, 204));
+
+        jLabel30.setForeground(new Color(102, 0, 153));
+
+        jLabel2.setFont(new Font("Tahoma", 1, 11)); // NOI18N
+        jLabel2.setForeground(new Color(204, 0, 0));
+        jLabel2.setText("ROI naming rules:");
+
+        jLabel3.setForeground(new Color(102, 0, 153));
+        jLabel3.setText("bg# : background ROI (required)");
+
+        jLabel25.setForeground(new Color(102, 0, 153));
+        jLabel25.setText("g# : green ROI");
+
+        jLabel27.setForeground(new Color(102, 0, 153));
+        jLabel27.setText("r# : red ROI");
+
+        jLabel29.setForeground(new Color(102, 0, 153));
+        jLabel29.setText("# : any character(s), case insensitive");
+
+        GroupLayout jPanel14Layout = new GroupLayout(jPanel14);
+        jPanel14.setLayout(jPanel14Layout);
+        jPanel14Layout.setHorizontalGroup(jPanel14Layout.createParallelGroup(GroupLayout.LEADING)
+            .add(jPanel14Layout.createSequentialGroup()
+                .addContainerGap()
+                .add(jPanel14Layout.createParallelGroup(GroupLayout.LEADING)
+                    .add(jPanel14Layout.createSequentialGroup()
+                        .add(0, 0, Short.MAX_VALUE)
+                        .add(jLabel30)
+                        .add(220, 220, 220))
+                    .add(jPanel14Layout.createSequentialGroup()
+                        .add(jPanel14Layout.createParallelGroup(GroupLayout.LEADING)
+                            .add(jLabel2)
+                            .add(jLabel3)
+                            .add(jLabel25)
+                            .add(jLabel27)
+                            .add(jLabel29))
+                        .add(0, 0, Short.MAX_VALUE))))
+        );
+        jPanel14Layout.setVerticalGroup(jPanel14Layout.createParallelGroup(GroupLayout.LEADING)
+            .add(jPanel14Layout.createSequentialGroup()
+                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .add(jLabel2, GroupLayout.PREFERRED_SIZE, 19, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .add(jLabel3)
+                .addPreferredGap(LayoutStyle.RELATED)
+                .add(jLabel25)
+                .addPreferredGap(LayoutStyle.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .add(jLabel27)
+                .addPreferredGap(LayoutStyle.RELATED)
+                .add(jLabel29)
+                .addPreferredGap(LayoutStyle.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .add(jLabel30)
+                .add(34, 34, 34))
+        );
+
+        buttonGroupAnalysisType.add(jRadioButton1);
+        jRadioButton1.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        jRadioButton1.setSelected(true);
+        jRadioButton1.setText("Ratiometric analysis (L1&L2 channels required)");
+        jRadioButton1.setToolTipText("Currently processes only two last channels from acquisition (expected L1 and L2)");
+
+        buttonGroupAnalysisType.add(jRadioButton2);
+        jRadioButton2.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        jRadioButton2.setText("Intensity profile for each channel");
+        jRadioButton2.setToolTipText("Type of analysis");
+        jRadioButton2.setEnabled(false);
+
+        AnalizeGroup.add(bLoadData);
+        bLoadData.setFont(new Font("Arial", 1, 18)); // NOI18N
+        bLoadData.setForeground(new Color(51, 102, 255));
+        bLoadData.setText("Analize Offline");
+        bLoadData.setToolTipText("Open previousely acquired data for analysis.");
+        bLoadData.setActionCommand("");
+        bLoadData.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                bLoadDataActionPerformed(evt);
+            }
+        });
+
+        AnalizeGroup.add(bOnlineAnalysis);
+        bOnlineAnalysis.setFont(new Font("Arial", 1, 18)); // NOI18N
+        bOnlineAnalysis.setForeground(new Color(0, 153, 0));
+        bOnlineAnalysis.setText("Analize Online");
+        bOnlineAnalysis.setToolTipText("Press for online analysis after starting acquisition. Take snapshot before starting acquisition to create ROIs for analysis. Follow ROI naming rules.");
+        bOnlineAnalysis.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                bOnlineAnalysisActionPerformed(evt);
+            }
+        });
+
+        analysisFile.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        analysisFile.addKeyListener(new KeyAdapter() {
+            public void keyTyped(KeyEvent evt) {
+                analysisFileKeyTyped(evt);
+            }
+        });
+
+        jLabel28.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        jLabel28.setText("Data :");
+
+        bAddRedROIs.setFont(new Font("Arial", 1, 18)); // NOI18N
+        bAddRedROIs.setForeground(new Color(204, 0, 0));
+        bAddRedROIs.setText("Red");
+        bAddRedROIs.setToolTipText("Places n red ROIs to active window");
+        bAddRedROIs.setActionCommand("");
+        bAddRedROIs.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                bAddRedROIsActionPerformed(evt);
+            }
+        });
+
+        nAddROIs.setText("0");
+        nAddROIs.setToolTipText("Enter the number of ROIs you want to add");
+        nAddROIs.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        nAddROIs.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                nAddROIsActionPerformed(evt);
+            }
+        });
+        nAddROIs.addKeyListener(new KeyAdapter() {
+            public void keyTyped(KeyEvent evt) {
+                nAddROIsKeyTyped(evt);
+            }
+        });
+
+        bAddGreenROIs.setFont(new Font("Arial", 1, 18)); // NOI18N
+        bAddGreenROIs.setForeground(new Color(0, 153, 0));
+        bAddGreenROIs.setText("Green");
+        bAddGreenROIs.setToolTipText("Places n green ROIs to active window");
+        bAddGreenROIs.setActionCommand("");
+        bAddGreenROIs.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                bAddGreenROIsActionPerformed(evt);
+            }
+        });
+
+        jLabel38.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        jLabel38.setText("Add ROIs:");
+
+        bAddGreenROIs1.setFont(new Font("Arial", 1, 18)); // NOI18N
+        bAddGreenROIs1.setForeground(new Color(102, 102, 102));
+        bAddGreenROIs1.setText("BG");
+        bAddGreenROIs1.setToolTipText("Places n background ROIs to active window");
+        bAddGreenROIs1.setActionCommand("");
+        bAddGreenROIs1.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                bAddGreenROIs1ActionPerformed(evt);
+            }
+        });
+
+        jLabel39.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        jLabel39.setText("n =");
+
+        GroupLayout jPanel11Layout = new GroupLayout(jPanel11);
+        jPanel11.setLayout(jPanel11Layout);
+        jPanel11Layout.setHorizontalGroup(jPanel11Layout.createParallelGroup(GroupLayout.LEADING)
+            .add(jPanel11Layout.createSequentialGroup()
+                .addContainerGap()
+                .add(jPanel11Layout.createParallelGroup(GroupLayout.LEADING)
+                    .add(jPanel11Layout.createSequentialGroup()
+                        .add(jPanel11Layout.createParallelGroup(GroupLayout.TRAILING)
+                            .add(progressCalc, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .add(jPanel11Layout.createSequentialGroup()
+                                .add(bGFPCorrection, GroupLayout.PREFERRED_SIZE, 124, GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(LayoutStyle.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .add(jLabel26)
+                                .addPreferredGap(LayoutStyle.RELATED)
+                                .add(eLastFrame, GroupLayout.PREFERRED_SIZE, 49, GroupLayout.PREFERRED_SIZE))
+                            .add(analysisFile)
+                            .add(GroupLayout.LEADING, jPanel11Layout.createSequentialGroup()
+                                .add(jPanel11Layout.createParallelGroup(GroupLayout.TRAILING)
+                                    .add(GroupLayout.LEADING, jRadioButton1)
+                                    .add(GroupLayout.LEADING, jRadioButton2)
+                                    .add(GroupLayout.LEADING, labelProgressCalc, GroupLayout.PREFERRED_SIZE, 334, GroupLayout.PREFERRED_SIZE)
+                                    .add(GroupLayout.LEADING, jPanel11Layout.createSequentialGroup()
+                                        .add(bOnlineAnalysis, GroupLayout.PREFERRED_SIZE, 171, GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(LayoutStyle.RELATED)
+                                        .add(bLoadData, GroupLayout.PREFERRED_SIZE, 171, GroupLayout.PREFERRED_SIZE))
+                                    .add(GroupLayout.LEADING, jLabel28))
+                                .add(0, 0, Short.MAX_VALUE))
+                            .add(GroupLayout.LEADING, jPanel11Layout.createSequentialGroup()
+                                .add(bShowROIMan)
+                                .addPreferredGap(LayoutStyle.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .add(bAnalize, GroupLayout.PREFERRED_SIZE, 168, GroupLayout.PREFERRED_SIZE)))
+                        .addContainerGap(13, Short.MAX_VALUE))
+                    .add(GroupLayout.TRAILING, jPanel11Layout.createSequentialGroup()
+                        .add(jPanel11Layout.createParallelGroup(GroupLayout.TRAILING)
+                            .add(jPanel11Layout.createSequentialGroup()
+                                .add(jLabel39)
+                                .addPreferredGap(LayoutStyle.UNRELATED)
+                                .add(nAddROIs, GroupLayout.PREFERRED_SIZE, 53, GroupLayout.PREFERRED_SIZE))
+                            .add(jPanel11Layout.createParallelGroup(GroupLayout.LEADING)
+                                .add(jLabel38)
+                                .add(jPanel11Layout.createParallelGroup(GroupLayout.LEADING, false)
+                                    .add(bAddGreenROIs1, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .add(bAddGreenROIs, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .add(bAddRedROIs, GroupLayout.PREFERRED_SIZE, 87, GroupLayout.PREFERRED_SIZE))))
+                        .addPreferredGap(LayoutStyle.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .add(jPanel14, GroupLayout.PREFERRED_SIZE, 198, GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap())))
+        );
+        jPanel11Layout.setVerticalGroup(jPanel11Layout.createParallelGroup(GroupLayout.LEADING)
+            .add(jPanel11Layout.createSequentialGroup()
+                .add(24, 24, 24)
+                .add(jPanel11Layout.createParallelGroup(GroupLayout.BASELINE)
+                    .add(bOnlineAnalysis, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .add(bLoadData, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(LayoutStyle.UNRELATED)
+                .add(jLabel28)
+                .add(4, 4, 4)
+                .add(analysisFile, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .add(10, 10, 10)
+                .add(jRadioButton2, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.RELATED)
+                .add(jRadioButton1)
+                .addPreferredGap(LayoutStyle.UNRELATED)
+                .add(jPanel11Layout.createParallelGroup(GroupLayout.BASELINE)
+                    .add(eLastFrame, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .add(jLabel26)
+                    .add(bGFPCorrection, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .add(18, 18, 18)
+                .add(jLabel38)
+                .addPreferredGap(LayoutStyle.RELATED)
+                .add(jPanel11Layout.createParallelGroup(GroupLayout.TRAILING)
+                    .add(jPanel14, GroupLayout.PREFERRED_SIZE, 140, GroupLayout.PREFERRED_SIZE)
+                    .add(jPanel11Layout.createSequentialGroup()
+                        .add(jPanel11Layout.createParallelGroup(GroupLayout.BASELINE)
+                            .add(nAddROIs, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                            .add(jLabel39))
+                        .addPreferredGap(LayoutStyle.UNRELATED)
+                        .add(bAddRedROIs)
+                        .addPreferredGap(LayoutStyle.RELATED)
+                        .add(bAddGreenROIs)
+                        .addPreferredGap(LayoutStyle.RELATED)
+                        .add(bAddGreenROIs1)))
+                .add(114, 114, 114)
+                .add(jPanel11Layout.createParallelGroup(GroupLayout.BASELINE)
+                    .add(bAnalize, GroupLayout.PREFERRED_SIZE, 33, GroupLayout.PREFERRED_SIZE)
+                    .add(bShowROIMan, GroupLayout.PREFERRED_SIZE, 33, GroupLayout.PREFERRED_SIZE))
+                .add(18, 18, 18)
+                .add(labelProgressCalc)
+                .addPreferredGap(LayoutStyle.RELATED)
+                .add(progressCalc, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .add(19, 19, 19))
+        );
+
+        jTabbedPane1.addTab("Analysis", jPanel11);
+
         jPanel6.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
 
         jPanel3.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Live"));
 
         zoomLive.setText("1");
+        zoomLive.setToolTipText("Image zoom when in Live mode");
         zoomLive.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         zoomLive.setVerifyInputWhenFocusTarget(false);
         zoomLive.addFocusListener(new FocusAdapter() {
@@ -874,6 +1227,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         jLabel7.setText("Bin :");
 
         binLive.setModel(new DefaultComboBoxModel(new String[] { "1", "2", "4", "8" }));
+        binLive.setToolTipText("Bining when in live mode");
         binLive.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent evt) {
                 binLiveItemStateChanged(evt);
@@ -944,6 +1298,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         jPanel9.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Channels"));
 
         filterTrans.setText("1");
+        filterTrans.setToolTipText("Physical position of the filter in the wheel");
         filterTrans.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         filterTrans.setVerifyInputWhenFocusTarget(false);
         filterTrans.addFocusListener(new FocusAdapter() {
@@ -961,6 +1316,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         jLabel15.setText("L1");
 
         filterL1.setText("1");
+        filterL1.setToolTipText("Physical position of the filter in the wheel");
         filterL1.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         filterL1.setVerifyInputWhenFocusTarget(false);
         filterL1.addFocusListener(new FocusAdapter() {
@@ -970,6 +1326,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         });
 
         filterLabelTrans.setText("1");
+        filterLabelTrans.setToolTipText("Channel name stored in acquisition");
         filterLabelTrans.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         filterLabelTrans.setVerifyInputWhenFocusTarget(false);
         filterLabelTrans.addFocusListener(new FocusAdapter() {
@@ -979,6 +1336,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         });
 
         filterLabelL1.setText("1");
+        filterLabelL1.setToolTipText("Channel name stored in acquisition");
         filterLabelL1.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         filterLabelL1.setVerifyInputWhenFocusTarget(false);
         filterLabelL1.addFocusListener(new FocusAdapter() {
@@ -988,6 +1346,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         });
 
         filterLabelL2.setText("1");
+        filterLabelL2.setToolTipText("Channel name stored in acquisition");
         filterLabelL2.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         filterLabelL2.setVerifyInputWhenFocusTarget(false);
         filterLabelL2.addFocusListener(new FocusAdapter() {
@@ -997,6 +1356,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         });
 
         filterL2.setText("1");
+        filterL2.setToolTipText("Physical position of the filter in the wheel");
         filterL2.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         filterL2.setVerifyInputWhenFocusTarget(false);
         filterL2.addFocusListener(new FocusAdapter() {
@@ -1016,6 +1376,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         jLabel18.setText("Label");
 
         shutterDelay.setText("1");
+        shutterDelay.setToolTipText("Delay to allow filter wheel to settle in a new position");
         shutterDelay.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         shutterDelay.setVerifyInputWhenFocusTarget(false);
         shutterDelay.addFocusListener(new FocusAdapter() {
@@ -1031,6 +1392,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         jLabel20.setText("ms");
 
         filterR.setText("1");
+        filterR.setToolTipText("Physical position of the filter in the wheel");
         filterR.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         filterR.setVerifyInputWhenFocusTarget(false);
         filterR.addFocusListener(new FocusAdapter() {
@@ -1048,6 +1410,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         jLabel22.setText("G");
 
         filterG.setText("1");
+        filterG.setToolTipText("Physical position of the filter in the wheel");
         filterG.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         filterG.setVerifyInputWhenFocusTarget(false);
         filterG.addFocusListener(new FocusAdapter() {
@@ -1057,6 +1420,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         });
 
         filterLabelG.setText("1");
+        filterLabelG.setToolTipText("Channel name stored in acquisition");
         filterLabelG.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         filterLabelG.setVerifyInputWhenFocusTarget(false);
         filterLabelG.addFocusListener(new FocusAdapter() {
@@ -1066,6 +1430,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         });
 
         filterLabelR.setText("1");
+        filterLabelR.setToolTipText("Channel name stored in acquisition");
         filterLabelR.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         filterLabelR.setVerifyInputWhenFocusTarget(false);
         filterLabelR.addFocusListener(new FocusAdapter() {
@@ -1096,7 +1461,7 @@ public class RMIControlForm extends javax.swing.JFrame {
                         .add(shutterDelay, GroupLayout.PREFERRED_SIZE, 49, GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(LayoutStyle.RELATED)
                         .add(jLabel20)
-                        .add(0, 0, Short.MAX_VALUE))
+                        .add(0, 149, Short.MAX_VALUE))
                     .add(GroupLayout.TRAILING, jPanel9Layout.createSequentialGroup()
                         .add(jPanel9Layout.createParallelGroup(GroupLayout.TRAILING)
                             .add(jLabel15)
@@ -1168,6 +1533,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         jPanel8.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Recording"));
 
         zoomRec.setText("1");
+        zoomRec.setToolTipText("Zoom when running acquisition");
         zoomRec.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         zoomRec.setVerifyInputWhenFocusTarget(false);
         zoomRec.addFocusListener(new FocusAdapter() {
@@ -1183,6 +1549,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         jLabel13.setText("Bin :");
 
         binRec.setModel(new DefaultComboBoxModel(new String[] { "1", "2", "4", "8" }));
+        binRec.setToolTipText("Binning when running acquisition");
         binRec.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent evt) {
                 binRecItemStateChanged(evt);
@@ -1216,6 +1583,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         );
 
         stateDeviceName.setText("LPT1");
+        stateDeviceName.setToolTipText("Digital output device name in uManager hardware configuration");
         stateDeviceName.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         stateDeviceName.setVerifyInputWhenFocusTarget(false);
         stateDeviceName.addFocusListener(new FocusAdapter() {
@@ -1228,6 +1596,7 @@ public class RMIControlForm extends javax.swing.JFrame {
         jLabel23.setText("State device name :");
 
         cameraDeviceName.setText("DCam");
+        cameraDeviceName.setToolTipText("Camera device name in uManager hardware configuration");
         cameraDeviceName.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         cameraDeviceName.setVerifyInputWhenFocusTarget(false);
         cameraDeviceName.addFocusListener(new FocusAdapter() {
@@ -1239,20 +1608,78 @@ public class RMIControlForm extends javax.swing.JFrame {
         jLabel24.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         jLabel24.setText("Camera name :");
 
+        tweakExpBin1.setText("1");
+        tweakExpBin1.setToolTipText("Check the value at which PI Camea");
+        tweakExpBin1.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        tweakExpBin1.setVerifyInputWhenFocusTarget(false);
+        tweakExpBin1.addFocusListener(new FocusAdapter() {
+            public void focusLost(FocusEvent evt) {
+                tweakExpBin1FocusLost(evt);
+            }
+        });
+
+        jLabel32.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        jLabel32.setText("ms");
+
+        jLabel31.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        jLabel31.setText("Tweak for PI MicroMAX");
+
+        jLabel33.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        jLabel33.setText("Bining 1");
+
+        jLabel34.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        jLabel34.setText("Bining 2");
+
+        tweakExpBin2.setText("1");
+        tweakExpBin2.setToolTipText("Check the value at which PI Camea");
+        tweakExpBin2.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        tweakExpBin2.setVerifyInputWhenFocusTarget(false);
+        tweakExpBin2.addFocusListener(new FocusAdapter() {
+            public void focusLost(FocusEvent evt) {
+                tweakExpBin2FocusLost(evt);
+            }
+        });
+
+        jLabel35.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        jLabel35.setText("ms");
+
+        jLabel36.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        jLabel36.setText("ms");
+
+        tweakExpBin4.setText("1");
+        tweakExpBin4.setToolTipText("Check the value at which PI Camea");
+        tweakExpBin4.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        tweakExpBin4.setVerifyInputWhenFocusTarget(false);
+        tweakExpBin4.addFocusListener(new FocusAdapter() {
+            public void focusLost(FocusEvent evt) {
+                tweakExpBin4FocusLost(evt);
+            }
+        });
+
+        jLabel37.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        jLabel37.setText("Bining 4");
+
+        tweakExp.setSelected(true);
+        tweakExp.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                tweakExpActionPerformed(evt);
+            }
+        });
+
         GroupLayout jPanel6Layout = new GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
         jPanel6Layout.setHorizontalGroup(jPanel6Layout.createParallelGroup(GroupLayout.LEADING)
             .add(jPanel6Layout.createSequentialGroup()
-                .add(4, 4, 4)
                 .add(jPanel6Layout.createParallelGroup(GroupLayout.LEADING)
-                    .add(jPanel9, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .add(jPanel6Layout.createSequentialGroup()
+                        .add(4, 4, 4)
                         .add(jPanel6Layout.createParallelGroup(GroupLayout.LEADING)
+                            .add(jPanel9, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .add(jPanel6Layout.createSequentialGroup()
                                 .add(jPanel3, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(LayoutStyle.RELATED, 24, Short.MAX_VALUE)
                                 .add(jPanel8, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                .add(6, 6, 6))
+                                .add(71, 71, 71))
                             .add(jPanel6Layout.createSequentialGroup()
                                 .add(jPanel7, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                                 .add(0, 0, Short.MAX_VALUE))
@@ -1266,8 +1693,34 @@ public class RMIControlForm extends javax.swing.JFrame {
                                     .add(jPanel6Layout.createSequentialGroup()
                                         .add(jLabel24, GroupLayout.PREFERRED_SIZE, 130, GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(LayoutStyle.RELATED)
-                                        .add(cameraDeviceName)))))
-                        .add(65, 65, 65)))
+                                        .add(cameraDeviceName))
+                                    .add(jPanel6Layout.createSequentialGroup()
+                                        .add(jPanel6Layout.createParallelGroup(GroupLayout.LEADING)
+                                            .add(jPanel6Layout.createSequentialGroup()
+                                                .add(jLabel33)
+                                                .add(8, 8, 8)
+                                                .add(tweakExpBin1, GroupLayout.PREFERRED_SIZE, 49, GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(LayoutStyle.RELATED)
+                                                .add(jLabel32))
+                                            .add(jPanel6Layout.createSequentialGroup()
+                                                .add(jLabel34)
+                                                .add(8, 8, 8)
+                                                .add(tweakExpBin2, GroupLayout.PREFERRED_SIZE, 49, GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(LayoutStyle.RELATED)
+                                                .add(jLabel35))
+                                            .add(jPanel6Layout.createSequentialGroup()
+                                                .add(jLabel37)
+                                                .add(8, 8, 8)
+                                                .add(tweakExpBin4, GroupLayout.PREFERRED_SIZE, 49, GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(LayoutStyle.RELATED)
+                                                .add(jLabel36)))
+                                        .add(0, 0, Short.MAX_VALUE))))))
+                    .add(jPanel6Layout.createSequentialGroup()
+                        .addContainerGap()
+                        .add(tweakExp, GroupLayout.PREFERRED_SIZE, 21, GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(LayoutStyle.RELATED)
+                        .add(jLabel31)
+                        .add(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel6Layout.setVerticalGroup(jPanel6Layout.createParallelGroup(GroupLayout.LEADING)
@@ -1286,7 +1739,26 @@ public class RMIControlForm extends javax.swing.JFrame {
                 .add(jPanel6Layout.createParallelGroup(GroupLayout.BASELINE)
                     .add(cameraDeviceName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                     .add(jLabel24))
-                .add(539, 539, 539)
+                .add(65, 65, 65)
+                .add(jPanel6Layout.createParallelGroup(GroupLayout.LEADING, false)
+                    .add(tweakExp, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .add(jLabel31, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(LayoutStyle.RELATED)
+                .add(jPanel6Layout.createParallelGroup(GroupLayout.BASELINE)
+                    .add(tweakExpBin1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .add(jLabel33)
+                    .add(jLabel32))
+                .addPreferredGap(LayoutStyle.RELATED)
+                .add(jPanel6Layout.createParallelGroup(GroupLayout.BASELINE)
+                    .add(tweakExpBin2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .add(jLabel34)
+                    .add(jLabel35))
+                .addPreferredGap(LayoutStyle.RELATED)
+                .add(jPanel6Layout.createParallelGroup(GroupLayout.BASELINE)
+                    .add(tweakExpBin4, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .add(jLabel37)
+                    .add(jLabel36))
+                .add(370, 370, 370)
                 .add(jPanel7, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -1295,11 +1767,11 @@ public class RMIControlForm extends javax.swing.JFrame {
 
         jTable1.setModel(new DefaultTableModel(
             new Object [][] {
-                {"Control",  new Integer(180),  new Integer(1),  new Integer(30),  new Boolean(true)},
-                {null, null, null, null, null},
-                {null, null, null, null, null},
-                {null, null, null, null, null},
-                {null, null, null, null, null},
+                {"Control",  new Integer(180),  new Integer(1),  new Integer(40),  new Boolean(true)},
+                {"Drug 1",  new Integer(180),  new Integer(2),  new Integer(40),  new Boolean(true)},
+                {"Wash",  new Integer(120),  new Integer(1),  new Integer(40), null},
+                {"Drug 2",  new Integer(180),  new Integer(3),  new Integer(40),  new Boolean(true)},
+                {"Wash",  new Integer(120),  new Integer(1),  new Integer(40), null},
                 {null, null, null, null, null},
                 {null, null, null, null, null},
                 {null, null, null, null, null},
@@ -1353,18 +1825,22 @@ public class RMIControlForm extends javax.swing.JFrame {
         GroupLayout jPanel10Layout = new GroupLayout(jPanel10);
         jPanel10.setLayout(jPanel10Layout);
         jPanel10Layout.setHorizontalGroup(jPanel10Layout.createParallelGroup(GroupLayout.LEADING)
-            .add(jScrollPane1, GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-            .add(GroupLayout.TRAILING, jPanel10Layout.createSequentialGroup()
-                .addContainerGap(157, Short.MAX_VALUE)
-                .add(bProtocolApply, GroupLayout.PREFERRED_SIZE, 98, GroupLayout.PREFERRED_SIZE)
-                .add(7, 7, 7)
-                .add(bProtocolDiscard)
+            .add(jPanel10Layout.createSequentialGroup()
+                .addContainerGap()
+                .add(jPanel10Layout.createParallelGroup(GroupLayout.LEADING)
+                    .add(GroupLayout.TRAILING, jPanel10Layout.createSequentialGroup()
+                        .add(0, 147, Short.MAX_VALUE)
+                        .add(bProtocolApply, GroupLayout.PREFERRED_SIZE, 98, GroupLayout.PREFERRED_SIZE)
+                        .add(7, 7, 7)
+                        .add(bProtocolDiscard))
+                    .add(jScrollPane1, GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel10Layout.setVerticalGroup(jPanel10Layout.createParallelGroup(GroupLayout.LEADING)
             .add(jPanel10Layout.createSequentialGroup()
+                .add(7, 7, 7)
                 .add(jScrollPane1, GroupLayout.PREFERRED_SIZE, 235, GroupLayout.PREFERRED_SIZE)
-                .add(18, 18, 18)
+                .addPreferredGap(LayoutStyle.UNRELATED)
                 .add(jPanel10Layout.createParallelGroup(GroupLayout.BASELINE)
                     .add(bProtocolApply, GroupLayout.PREFERRED_SIZE, 36, GroupLayout.PREFERRED_SIZE)
                     .add(bProtocolDiscard, GroupLayout.PREFERRED_SIZE, 36, GroupLayout.PREFERRED_SIZE))
@@ -1373,199 +1849,31 @@ public class RMIControlForm extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("Protocol", jPanel10);
 
-        jLabel26.setFont(new Font("Tahoma", 0, 14)); // NOI18N
-        jLabel26.setText("Last processed frame :");
-
-        eLastFrame.setText("0");
-        eLastFrame.setFont(new Font("Tahoma", 0, 14)); // NOI18N
-        eLastFrame.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                eLastFrameActionPerformed(evt);
-            }
-        });
-        eLastFrame.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent evt) {
-                eLastFrameKeyTyped(evt);
-            }
-        });
-
-        bResetLastFrame.setFont(new Font("Tahoma", 0, 12)); // NOI18N
-        bResetLastFrame.setText("Zero");
-        bResetLastFrame.setMargin(new Insets(5, 14, 2, 14));
-        bResetLastFrame.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                bResetLastFrameActionPerformed(evt);
-            }
-        });
-
-        progressCalc.setValue(50);
-
-        labelProgressCalc.setText("Idle");
-
-        bGFPCorrection.setFont(new Font("Tahoma", 0, 14)); // NOI18N
-        bGFPCorrection.setText("GFP correction");
-        bGFPCorrection.setAlignmentY(0.0F);
-        bGFPCorrection.setMargin(new Insets(1, 2, 2, 2));
-        bGFPCorrection.setMaximumSize(new Dimension(25, 25));
-
-        jPanel13.setBorder(BorderFactory.createTitledBorder(null, "Offline analysis", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font("Tahoma", 0, 11), new Color(0, 0, 255))); // NOI18N
-        jPanel13.setName("sdfgsdfg"); // NOI18N
-
-        jLabel28.setFont(new Font("Tahoma", 0, 14)); // NOI18N
-        jLabel28.setText("Data :");
-
-        analysisFile.setFont(new Font("Tahoma", 0, 14)); // NOI18N
-        analysisFile.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent evt) {
-                analysisFileKeyTyped(evt);
-            }
-        });
-
-        AnalizeGroup.add(bLoadData);
-        bLoadData.setFont(new Font("Arial", 1, 18)); // NOI18N
-        bLoadData.setForeground(new Color(51, 102, 255));
-        bLoadData.setText("Analize Offline");
-        bLoadData.setActionCommand("");
-        bLoadData.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                bLoadDataActionPerformed(evt);
-            }
-        });
-
-        GroupLayout jPanel13Layout = new GroupLayout(jPanel13);
-        jPanel13.setLayout(jPanel13Layout);
-        jPanel13Layout.setHorizontalGroup(jPanel13Layout.createParallelGroup(GroupLayout.LEADING)
-            .add(jPanel13Layout.createSequentialGroup()
-                .addContainerGap()
-                .add(jPanel13Layout.createParallelGroup(GroupLayout.LEADING)
-                    .add(GroupLayout.TRAILING, jPanel13Layout.createSequentialGroup()
-                        .add(jLabel28)
-                        .addPreferredGap(LayoutStyle.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .add(bLoadData, GroupLayout.PREFERRED_SIZE, 171, GroupLayout.PREFERRED_SIZE))
-                    .add(analysisFile))
-                .addContainerGap())
-        );
-        jPanel13Layout.setVerticalGroup(jPanel13Layout.createParallelGroup(GroupLayout.LEADING)
-            .add(jPanel13Layout.createSequentialGroup()
-                .add(7, 7, 7)
-                .add(jPanel13Layout.createParallelGroup(GroupLayout.BASELINE)
-                    .add(jLabel28)
-                    .add(bLoadData, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(LayoutStyle.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .add(analysisFile, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-
-        jPanel12.setBorder(BorderFactory.createTitledBorder(null, "Online analysis", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font("Tahoma", 0, 11), new Color(0, 153, 0))); // NOI18N
-        jPanel12.setName("sdfgsdfg"); // NOI18N
-
-        AnalizeGroup.add(bOnlineAnalysis);
-        bOnlineAnalysis.setFont(new Font("Arial", 1, 18)); // NOI18N
-        bOnlineAnalysis.setForeground(new Color(0, 153, 0));
-        bOnlineAnalysis.setText("Analize Online");
-        bOnlineAnalysis.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                bOnlineAnalysisActionPerformed(evt);
-            }
-        });
-
-        GroupLayout jPanel12Layout = new GroupLayout(jPanel12);
-        jPanel12.setLayout(jPanel12Layout);
-        jPanel12Layout.setHorizontalGroup(jPanel12Layout.createParallelGroup(GroupLayout.LEADING)
-            .add(GroupLayout.TRAILING, jPanel12Layout.createSequentialGroup()
-                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .add(bOnlineAnalysis, GroupLayout.PREFERRED_SIZE, 171, GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
-        );
-        jPanel12Layout.setVerticalGroup(jPanel12Layout.createParallelGroup(GroupLayout.LEADING)
-            .add(jPanel12Layout.createSequentialGroup()
-                .addContainerGap()
-                .add(bOnlineAnalysis, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-
-        bAnalize.setFont(new Font("Arial", 1, 18)); // NOI18N
-        bAnalize.setForeground(new Color(102, 0, 102));
-        bAnalize.setText("Run Analysis");
-        bAnalize.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                bAnalizeActionPerformed(evt);
-            }
-        });
-
-        bShowROIMan.setFont(new Font("Arial", 1, 12)); // NOI18N
-        bShowROIMan.setText("Show ROI Manager");
-        bShowROIMan.setActionCommand("");
-        bShowROIMan.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                bShowROIManActionPerformed(evt);
-            }
-        });
-
-        GroupLayout jPanel11Layout = new GroupLayout(jPanel11);
-        jPanel11.setLayout(jPanel11Layout);
-        jPanel11Layout.setHorizontalGroup(jPanel11Layout.createParallelGroup(GroupLayout.LEADING)
-            .add(jPanel11Layout.createSequentialGroup()
-                .addContainerGap()
-                .add(jPanel11Layout.createParallelGroup(GroupLayout.LEADING)
-                    .add(GroupLayout.TRAILING, jPanel11Layout.createSequentialGroup()
-                        .add(jPanel11Layout.createParallelGroup(GroupLayout.TRAILING)
-                            .add(GroupLayout.LEADING, jPanel12, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .add(jPanel13, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addContainerGap())
-                    .add(jPanel11Layout.createSequentialGroup()
-                        .add(jPanel11Layout.createParallelGroup(GroupLayout.LEADING)
-                            .add(jPanel11Layout.createParallelGroup(GroupLayout.TRAILING)
-                                .add(bAnalize, GroupLayout.PREFERRED_SIZE, 168, GroupLayout.PREFERRED_SIZE)
-                                .add(jPanel11Layout.createParallelGroup(GroupLayout.LEADING)
-                                    .add(progressCalc, GroupLayout.PREFERRED_SIZE, 342, GroupLayout.PREFERRED_SIZE)
-                                    .add(labelProgressCalc, GroupLayout.PREFERRED_SIZE, 334, GroupLayout.PREFERRED_SIZE)))
-                            .add(bShowROIMan, GroupLayout.PREFERRED_SIZE, 143, GroupLayout.PREFERRED_SIZE)
-                            .add(bGFPCorrection, GroupLayout.PREFERRED_SIZE, 124, GroupLayout.PREFERRED_SIZE)
-                            .add(jPanel11Layout.createSequentialGroup()
-                                .add(jLabel26)
-                                .add(18, 18, 18)
-                                .add(eLastFrame, GroupLayout.PREFERRED_SIZE, 79, GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(LayoutStyle.RELATED)
-                                .add(bResetLastFrame)))
-                        .add(0, 19, Short.MAX_VALUE))))
-        );
-        jPanel11Layout.setVerticalGroup(jPanel11Layout.createParallelGroup(GroupLayout.LEADING)
-            .add(jPanel11Layout.createSequentialGroup()
-                .addContainerGap()
-                .add(jPanel13, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(LayoutStyle.UNRELATED)
-                .add(jPanel12, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .add(18, 18, 18)
-                .add(jPanel11Layout.createParallelGroup(GroupLayout.BASELINE)
-                    .add(jLabel26)
-                    .add(eLastFrame, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .add(bResetLastFrame))
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(bGFPCorrection, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(LayoutStyle.UNRELATED)
-                .add(bShowROIMan)
-                .addPreferredGap(LayoutStyle.RELATED, 211, Short.MAX_VALUE)
-                .add(bAnalize)
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(labelProgressCalc)
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(progressCalc, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
-        );
-
-        jPanel12.getAccessibleContext().setAccessibleName("dfsdfgsd");
-        jPanel12.getAccessibleContext().setAccessibleDescription("");
-
-        jTabbedPane1.addTab("Analysis", jPanel11);
+        jTextField2.setEditable(false);
+        jTextField2.setFont(new Font("Tahoma", 0, 12)); // NOI18N
+        jTextField2.setForeground(new Color(102, 102, 102));
+        jTextField2.setHorizontalAlignment(JTextField.TRAILING);
+        jTextField2.setText("Sergei Grebenyuk, 2016 <sergeigrebenyuk@gmail.com>");
+        jTextField2.setToolTipText("E-mail me if you have questions or comments");
+        jTextField2.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
 
         GroupLayout layout = new GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.LEADING)
-            .add(jTabbedPane1, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .add(layout.createSequentialGroup()
+                .add(jTabbedPane1, GroupLayout.PREFERRED_SIZE, 376, GroupLayout.PREFERRED_SIZE)
+                .add(0, 0, Short.MAX_VALUE))
+            .add(layout.createSequentialGroup()
+                .addContainerGap()
+                .add(jTextField2)
+                .addContainerGap())
         );
         layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.LEADING)
-            .add(jTabbedPane1, GroupLayout.PREFERRED_SIZE, 623, GroupLayout.PREFERRED_SIZE)
+            .add(layout.createSequentialGroup()
+                .add(jTabbedPane1, GroupLayout.PREFERRED_SIZE, 623, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.RELATED)
+                .add(jTextField2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .add(0, 5, Short.MAX_VALUE))
         );
 
         jTabbedPane1.getAccessibleContext().setAccessibleDescription("");
@@ -1621,9 +1929,9 @@ break; //stop
         bWriteToDisk.setSelected(rmi.bWriteToDisk);
         bAutoRef.setSelected(rmi.bAutoRef);
         zoomLive.setText(rmi.zoomLive);
-        binLive.setSelectedIndex((int) log2(Integer.valueOf(rmi.binLive)));
+        binLive.setSelectedIndex(rmi.binLive);
         zoomRec.setText(rmi.zoomRec);
-        binRec.setSelectedIndex((int) log2(Integer.valueOf(rmi.binRec)));
+        binRec.setSelectedIndex(rmi.binRec);
         shutterDelay.setText(Integer.toString(rmi.shutterDelay));
         filterTrans.setText(Integer.toString(rmi.channels[rmi.FLT_TRANS].filterSlot));
         filterL1.setText(Integer.toString(rmi.channels[rmi.FLT_L1].filterSlot)); 
@@ -1646,6 +1954,10 @@ break; //stop
         bStop.setEnabled(false);
         bOnlineAnalysis.setSelected( rmi.bOnlineAnalysis);
         
+        tweakExp.setSelected(rmi.tweakExp); 
+        tweakExpBin1.setText(Integer.toString(rmi.tweakExposures[0])); 
+        tweakExpBin2.setText(Integer.toString(rmi.tweakExposures[1])); 
+        tweakExpBin4.setText(Integer.toString(rmi.tweakExposures[2])); 
     
     }//GEN-LAST:event_formWindowOpened
 
@@ -1662,7 +1974,7 @@ break; //stop
     }//GEN-LAST:event_stateDeviceNameFocusLost
 
     private void binRecItemStateChanged(ItemEvent evt) {//GEN-FIRST:event_binRecItemStateChanged
-        rmi.binRec = String.valueOf( (int) Math.pow(2,binRec.getSelectedIndex()));
+        rmi.binRec = binRec.getSelectedIndex();
     }//GEN-LAST:event_binRecItemStateChanged
 
     private void zoomRecFocusLost(FocusEvent evt) {//GEN-FIRST:event_zoomRecFocusLost
@@ -1719,7 +2031,7 @@ break; //stop
     }//GEN-LAST:event_channelGroupFocusLost
 
     private void binLiveItemStateChanged(ItemEvent evt) {//GEN-FIRST:event_binLiveItemStateChanged
-        rmi.binLive = String.valueOf( (int) Math.pow(2,binLive.getSelectedIndex()));        // TODO add your handling code here:
+        rmi.binLive = binLive.getSelectedIndex();        // TODO add your handling code here:
     }//GEN-LAST:event_binLiveItemStateChanged
 
     private void zoomLiveFocusLost(FocusEvent evt) {//GEN-FIRST:event_zoomLiveFocusLost
@@ -1759,7 +2071,25 @@ break; //stop
     }//GEN-LAST:event_bStartActionPerformed
 
     private void bShowCommentActionPerformed(ActionEvent evt) {//GEN-FIRST:event_bShowCommentActionPerformed
-        rmi.rmi_comment_form.setVisible(true);
+        
+        if (rmi.bExperimentIsSetUp)
+            rmi.rmi_comment_form.setVisible(true);
+        else
+        {
+            Object[] options = {"Yes","No"};
+                int n = JOptionPane.showOptionDialog(null, "No experiment is set up. Create new experiment?",    "Warning", JOptionPane.YES_NO_OPTION,    JOptionPane.QUESTION_MESSAGE,    null,    options,    options[0]);
+                if (n==0) 
+                {
+                    try {
+                        rmi.newStorage();
+                        rmi.rmi_comment_form.setVisible(true);
+                    } 
+                    catch (IOException ex) {
+                        Logger.getLogger(RMIControlForm.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    
+                }
+        }
     }//GEN-LAST:event_bShowCommentActionPerformed
 
     private void bNewExpActionPerformed(ActionEvent evt) {//GEN-FIRST:event_bNewExpActionPerformed
@@ -1934,10 +2264,6 @@ break; //stop
         // TODO add your handling code here:
     }//GEN-LAST:event_eLastFrameKeyTyped
 
-    private void bResetLastFrameActionPerformed(ActionEvent evt) {//GEN-FIRST:event_bResetLastFrameActionPerformed
-        eLastFrame.setText("0");
-    }//GEN-LAST:event_bResetLastFrameActionPerformed
-
     private void eLastFrameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_eLastFrameActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_eLastFrameActionPerformed
@@ -2001,7 +2327,63 @@ break; //stop
         
     }//GEN-LAST:event_bShutterActionPerformed
 
-    
+    private void tweakExpBin1FocusLost(FocusEvent evt) {//GEN-FIRST:event_tweakExpBin1FocusLost
+         rmi.tweakExposures[0] = Integer.valueOf(tweakExpBin1.getText());
+    }//GEN-LAST:event_tweakExpBin1FocusLost
+
+    private void tweakExpBin2FocusLost(FocusEvent evt) {//GEN-FIRST:event_tweakExpBin2FocusLost
+        rmi.tweakExposures[1] = Integer.valueOf(tweakExpBin2.getText());
+    }//GEN-LAST:event_tweakExpBin2FocusLost
+
+    private void tweakExpBin4FocusLost(FocusEvent evt) {//GEN-FIRST:event_tweakExpBin4FocusLost
+        rmi.tweakExposures[2] = Integer.valueOf(tweakExpBin4.getText());
+    }//GEN-LAST:event_tweakExpBin4FocusLost
+
+    private void tweakExpActionPerformed(ActionEvent evt) {//GEN-FIRST:event_tweakExpActionPerformed
+        rmi.tweakExp = tweakExp.isSelected();
+    }//GEN-LAST:event_tweakExpActionPerformed
+
+    private void bAddRedROIsActionPerformed(ActionEvent evt) {//GEN-FIRST:event_bAddRedROIsActionPerformed
+        //rmi.app.getDisplayManager().getCurrentWindow().getImageWindow().addMouseListener(this);
+        int n = Integer.valueOf(nAddROIs.getText());
+        AddROIs(n,Color.RED,"R");
+    }//GEN-LAST:event_bAddRedROIsActionPerformed
+
+    private void nAddROIsActionPerformed(ActionEvent evt) {//GEN-FIRST:event_nAddROIsActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_nAddROIsActionPerformed
+
+    private void nAddROIsKeyTyped(KeyEvent evt) {//GEN-FIRST:event_nAddROIsKeyTyped
+        // TODO add your handling code here:
+    }//GEN-LAST:event_nAddROIsKeyTyped
+
+    private void bAddGreenROIsActionPerformed(ActionEvent evt) {//GEN-FIRST:event_bAddGreenROIsActionPerformed
+        int n = Integer.valueOf(nAddROIs.getText());
+        AddROIs(n,Color.GREEN,"G");
+    }//GEN-LAST:event_bAddGreenROIsActionPerformed
+
+    private void bAddGreenROIs1ActionPerformed(ActionEvent evt) {//GEN-FIRST:event_bAddGreenROIs1ActionPerformed
+        int n = Integer.valueOf(nAddROIs.getText());
+        AddROIs(n,Color.GRAY,"BG");
+    }//GEN-LAST:event_bAddGreenROIs1ActionPerformed
+
+    private void AddROIs(int num,Color col, String prefix)
+    {
+        int grid = 10;
+        RoiManager rm = RoiManager.getInstance();
+        if (rm==null)
+            rm = new RoiManager();
+        for (int i=0; i<num; i++)
+        {
+            int c = rm.getCount();
+            OvalRoi roi = new OvalRoi(50+(c/grid)*25,50+(c%grid)*25 ,20,20);
+            roi.setName(String.format("%s%d",prefix ,c+1));
+            roi.setStrokeWidth(1);
+            roi.setStrokeColor(col);
+            rm.addRoi(roi);
+        }        
+        rm.runCommand("Show All");
+    }
     /**
      * @param args the command line arguments
      */
@@ -2042,6 +2424,9 @@ break; //stop
     private ButtonGroup AnalizeGroup;
     private JLabel adjInterval;
     private JFormattedTextField analysisFile;
+    private JToggleButton bAddGreenROIs;
+    private JToggleButton bAddGreenROIs1;
+    private JToggleButton bAddRedROIs;
     private JButton bAnalize;
     private JCheckBox bAutoRef;
     private JButton bClose;
@@ -2065,7 +2450,6 @@ break; //stop
     private JButton bProtocolDiscard;
     private JToggleButton bR;
     private JCheckBox bRCapture;
-    private JButton bResetLastFrame;
     private JButton bShowComment;
     private JButton bShowROIMan;
     private JButton bShutter;
@@ -2077,6 +2461,7 @@ break; //stop
     private JCheckBox bWriteToDisk;
     private JComboBox binLive;
     private JComboBox binRec;
+    private ButtonGroup buttonGroupAnalysisType;
     private JFormattedTextField cameraDeviceName;
     private JFormattedTextField channelGroup;
     private JFormattedTextField dataFile;
@@ -2097,7 +2482,6 @@ break; //stop
     private JFormattedTextField filterLabelTrans;
     private JFormattedTextField filterR;
     private JFormattedTextField filterTrans;
-    private JLabel jLabel1;
     private JLabel jLabel10;
     private JLabel jLabel11;
     private JLabel jLabel12;
@@ -2108,13 +2492,28 @@ break; //stop
     private JLabel jLabel17;
     private JLabel jLabel18;
     private JLabel jLabel19;
+    private JLabel jLabel2;
     private JLabel jLabel20;
     private JLabel jLabel21;
     private JLabel jLabel22;
     private JLabel jLabel23;
     private JLabel jLabel24;
+    private JLabel jLabel25;
     private JLabel jLabel26;
+    private JLabel jLabel27;
     private JLabel jLabel28;
+    private JLabel jLabel29;
+    private JLabel jLabel3;
+    private JLabel jLabel30;
+    private JLabel jLabel31;
+    private JLabel jLabel32;
+    private JLabel jLabel33;
+    private JLabel jLabel34;
+    private JLabel jLabel35;
+    private JLabel jLabel36;
+    private JLabel jLabel37;
+    private JLabel jLabel38;
+    private JLabel jLabel39;
     private JLabel jLabel4;
     private JLabel jLabel5;
     private JLabel jLabel6;
@@ -2124,8 +2523,7 @@ break; //stop
     private JPanel jPanel1;
     private JPanel jPanel10;
     private JPanel jPanel11;
-    private JPanel jPanel12;
-    private JPanel jPanel13;
+    private JPanel jPanel14;
     private JPanel jPanel2;
     private JPanel jPanel3;
     private JPanel jPanel4;
@@ -2134,19 +2532,25 @@ break; //stop
     private JPanel jPanel7;
     private JPanel jPanel8;
     private JPanel jPanel9;
-    private JPasswordField jPasswordField1;
+    private JRadioButton jRadioButton1;
+    private JRadioButton jRadioButton2;
     private JScrollPane jScrollPane1;
     private JTabbedPane jTabbedPane1;
     private JTable jTable1;
-    private JToolBar jToolBar1;
+    private JTextField jTextField2;
     public JLabel labelProgressCalc;
     private JLabel labelRecProgress;
+    public JFormattedTextField nAddROIs;
     private JProgressBar progressCalc;
     private JProgressBar progressRec;
     private JFormattedTextField recInterval;
     private JFormattedTextField recTime;
     private JFormattedTextField shutterDelay;
     private JFormattedTextField stateDeviceName;
+    private JCheckBox tweakExp;
+    private JFormattedTextField tweakExpBin1;
+    private JFormattedTextField tweakExpBin2;
+    private JFormattedTextField tweakExpBin4;
     private JFormattedTextField zoomLive;
     private JFormattedTextField zoomRec;
     // End of variables declaration//GEN-END:variables
@@ -2234,5 +2638,29 @@ break; //stop
         }
     }
 
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+        
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+        JOptionPane.showMessageDialog(null,"Mouse Up!");
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+        
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+        
+    }
    
 }

@@ -12,6 +12,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -162,6 +163,8 @@ class RedoAction extends AbstractAction
         bClose = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
         sDescription = new javax.swing.JTextPane();
+        buttonLoad = new javax.swing.JButton();
+        buttonTemplate = new javax.swing.JButton();
 
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowOpened(java.awt.event.WindowEvent evt) {
@@ -177,8 +180,13 @@ class RedoAction extends AbstractAction
         });
 
         sDescription.setBackground(new java.awt.Color(255, 255, 204));
-        sDescription.setFont(new java.awt.Font("Lucida Sans Typewriter", 0, 20)); // NOI18N
+        sDescription.setFont(new java.awt.Font("Lucida Sans Typewriter", 0, 18)); // NOI18N
         sDescription.setForeground(new java.awt.Color(0, 51, 102));
+        sDescription.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                sDescriptionFocusLost(evt);
+            }
+        });
         sDescription.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyReleased(java.awt.event.KeyEvent evt) {
                 sDescriptionKeyReleased(evt);
@@ -187,12 +195,30 @@ class RedoAction extends AbstractAction
         jScrollPane2.setViewportView(sDescription);
         sDescription.getAccessibleContext().setAccessibleParent(sDescription);
 
+        buttonLoad.setText("Load...");
+        buttonLoad.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonLoadActionPerformed(evt);
+            }
+        });
+
+        buttonTemplate.setText("Template");
+        buttonTemplate.setActionCommand("");
+        buttonTemplate.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonTemplateActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(461, Short.MAX_VALUE)
+                .addComponent(buttonLoad)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(buttonTemplate)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 311, Short.MAX_VALUE)
                 .addComponent(bClose)
                 .addContainerGap())
             .addComponent(jScrollPane2)
@@ -201,8 +227,15 @@ class RedoAction extends AbstractAction
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE)
-                .addGap(18, 18, 18)
-                .addComponent(bClose, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(18, 18, 18)
+                        .addComponent(bClose, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(9, 9, 9)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(buttonLoad)
+                            .addComponent(buttonTemplate))))
                 .addContainerGap())
         );
 
@@ -221,6 +254,31 @@ class RedoAction extends AbstractAction
         
         
     }//GEN-LAST:event_sDescriptionKeyReleased
+
+    private void buttonLoadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonLoadActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_buttonLoadActionPerformed
+
+    private void buttonTemplateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonTemplateActionPerformed
+       
+    }//GEN-LAST:event_buttonTemplateActionPerformed
+
+    private void sDescriptionFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_sDescriptionFocusLost
+       try {
+            // Save comment to file
+            if (rmi.bExperimentIsSetUp)
+            {   rmi.sDescription = sDescription.getText();
+              //  rmi.fDescFileChannel.truncate(0);
+            rmi.fDescFileWriter = new PrintWriter(rmi.fDescFile);   
+            rmi.fDescFileWriter.print(rmi.sDescription.trim());        
+            rmi.fDescFileWriter.flush();
+            rmi.fDescFileWriter.close();
+            
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(RMICommentFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_sDescriptionFocusLost
  
     /**
      * @param args the command line arguments
@@ -260,6 +318,8 @@ class RedoAction extends AbstractAction
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton bClose;
+    private javax.swing.JButton buttonLoad;
+    private javax.swing.JButton buttonTemplate;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTextPane sDescription;
     // End of variables declaration//GEN-END:variables

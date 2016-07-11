@@ -94,11 +94,13 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
     boolean canRun;
     public String channelGroup="Channels";
     public String zoomLive = "1";
-    public String binLive = "1";
+    public int binLive = 0;
     public String zoomRec = "1";
-    public String binRec = "1";
+    public int binRec = 0;
     public String lastCommentFile = "";
+    public int[] tweakExposures = {0,0,0}; // "Trans" channel exposure corrections for each binning mode
     
+    public boolean tweakExp;
     public int shutterDelay=0;
     
     // constants
@@ -168,7 +170,7 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
         timer = new java.util.Timer();//create a new Timer
         clockTask = null;
         acqTask = null;     
-        
+        bOnlineAnalysis = true;
     }
      
     @Override
@@ -189,9 +191,9 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
         prefs.putBoolean("autoRef",bAutoRef);
         prefs.put("channelGroup",channelGroup);
         prefs.put("zoomLive",zoomLive);
-        prefs.put("binLive",binLive);
+        prefs.putInt("binLive",binLive);
         prefs.put("zoomRec",zoomRec);
-        prefs.put("binRec",binRec);
+        prefs.putInt("binRec",binRec);
         prefs.putInt("shutterDelay",shutterDelay);
         prefs.putInt("expTrans",channels[FLT_TRANS].exposure);
         prefs.putInt("expL1",channels[FLT_L1].exposure);
@@ -223,6 +225,11 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
         prefs.put("stateDeviceName",stateDeviceName);
         prefs.put("cameraDeviceName",cameraDeviceName);
         
+        prefs.putInt("tweakExpBin1",tweakExposures[0] );
+        prefs.putInt("tweakExpBin2",tweakExposures[1] );
+        prefs.putInt("tweakExpBin4",tweakExposures[2] );
+
+        prefs.putBoolean("tweakExp", tweakExp);        
     }
     private void LoadSettings() throws Exception
     {
@@ -237,9 +244,9 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
         bOnlineAnalysis = prefs.getBoolean("onlineAnalysis",true);
         channelGroup = prefs.get("channelGroup","Channels");
         zoomLive = prefs.get("zoomLive","1");
-        binLive = prefs.get("binLive","1");
+        binLive = prefs.getInt("binLive",0);
         zoomRec = prefs.get("zoomRec","1");
-        binRec = prefs.get("binRec","1");
+        binRec = prefs.getInt("binRec",0);
         shutterDelay = prefs.getInt("shutterDelay",0);
         
         channels[FLT_TRANS].exposure = prefs.getInt("expTrans",10);
@@ -269,7 +276,10 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
         channels[FLT_R].col = new Color( prefs.getInt("colorR", Color.RED.getRGB()));
         stateDeviceName = prefs.get("stateDeviceName","LPT1");
         cameraDeviceName = prefs.get("cameraDeviceName","DCam");
-        
+        tweakExposures[0] = prefs.getInt("tweakExpBin1", 293 );
+        tweakExposures[1] = prefs.getInt("tweakExpBin2", 150 );
+        tweakExposures[2] = prefs.getInt("tweakExpBin4", 0 );
+        tweakExp = prefs.getBoolean("tweakExp", true);
         //setFilterExp(FLT_TRANS);
     }
 
@@ -284,7 +294,7 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
         SimpleDateFormat form = new SimpleDateFormat("yyyy-MM-dd@HHmmss");
         DataFile = form.format(d); // set the default name
         rmi_form.setDataFileName(DataFile);
-        form = new SimpleDateFormat("yyyy/MM/dd ");
+        form = new SimpleDateFormat("yyyy/MM/dd");
         expDate = form.format(d); // set the default name
         form = new SimpleDateFormat("HH:mm:ss");
         expTime = form.format(d); // set the default name
@@ -296,7 +306,13 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
         filterSelected = flt;
         core.setProperty(stateDeviceName, "State", String.valueOf(16 + channels[flt].filterSlot));
         //core.setProperty(core.getCameraDevice(), "Exposure", channels[flt].exposure);
-        core.setExposure(core.getCameraDevice(),channels[flt].exposure);
+        double exp = channels[flt].exposure;
+        if ((tweakExp)&&(flt==FLT_TRANS))
+        {
+            int binIdx = liveMode?binLive:binRec;
+            exp += tweakExposures[binIdx];
+        }
+        core.setExposure(core.getCameraDevice(),exp);
     }
     void setLiveZoom(String zoom) { 
         
@@ -321,6 +337,8 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
         if (!bExperimentIsSetUp)
             if (setupNewExperiment(false)==0) 
                 return 0;
+        createDescriptionFile(); 
+        rmi_comment_form.updateContent();
         
         // Setup variables
         curTime = 0;
@@ -347,7 +365,10 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
         //Set up acquisition
         core.setCameraDevice(cameraDeviceName);
         core.setProperty(core.getCameraDevice(), "Binning", "1");
-        core.setProperty(core.getCameraDevice(), "BitDepth", "16");
+         if (core.getBytesPerPixel()!=2){
+                JOptionPane.showMessageDialog(null,"Please, set your camera to generate 12-,14- or 16-bit image");
+                return 0;
+            }
             // check if every device is present
             // ... don't know how to do that
         
@@ -432,18 +453,18 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
         }                        
         rmi_form.updateIntervalIndicator(adjustedInterval);
 
-        setBinning(binRec);
+        setBinning(String.valueOf((int)Math.pow(2,binRec)));
 
         if (bAutoRef){snapReferenceImage();}
         
         DisplayWindow live_win = app.live().getDisplay();
         if (live_win !=null) live_win.getImageWindow().setVisible(false);        
         rmi_form.renderUI(RSTATE.REC_IDLE);        
+        bOnlineAnalysis = true;
         return 1;
     }
 
     public void setBinning(String bin) throws Exception {
-        //if ((bin!="1")&&(bin!="2")&&(bin!="4")&&(bin!="8")) return;
         if (getRecState() != RSTATE.REC_RUNNING)
         {
             core.setProperty(core.getCameraDevice(), "Binning", bin);
@@ -484,23 +505,19 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
             } 
             
         }
-        
         f.mkdir();
         acqPath = path;
         nTrialCnt=0;
         sAcqName = String.format("data-%s-%d",DataFile, nTrialCnt);
         sRefName = String.format("ref-%s-%d",DataFile, nTrialCnt);
         bExperimentIsSetUp = true;
-        createDescriptionFile();        
         forceNewStorage = false;
-        rmi_comment_form.updateContent();
         return 1;
     }
 
     void snapReferenceImage() throws InterruptedException,  Exception {
         if (bExperimentIsSetUp)
         {
-            
             Coords.CoordsBuilder builder = app.data().getCoordsBuilder();
             builder = builder.stagePosition(0).z(0).time(0);
             
@@ -519,21 +536,16 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
     void deinitAcquisition() throws InterruptedException {
         if (bWriteToDisk)
         {
-            //dataStore.freeze();
-            //refStore.freeze();
         }
         else
         {
             dataStore.save(Datastore.SaveMode.MULTIPAGE_TIFF, acqPath);
             refStore.save(Datastore.SaveMode.MULTIPAGE_TIFF, acqPath);        
-            //dataStore.save(Datastore.SaveMode.SINGLEPLANE_TIFF_SERIES, acqPath);
-            //refStore.save(Datastore.SaveMode.SINGLEPLANE_TIFF_SERIES, acqPath);        
         }
         dataStore=null;
         refStore=null;
         DisplayWindow live_win = app.live().getDisplay();
         if (live_win !=null) live_win.getImageWindow().setVisible(true);        
-
         rmi_form.renderUI(RSTATE.REC_STOP);
         bExperimentIsSetUp = false;
         nTrialCnt++;
@@ -541,7 +553,6 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
     }
 
     void continueExperiment() {
-        //String p = DataHome+"\\"+DataFile;
         sAcqName = String.format("data-%s-%d",DataFile, nTrialCnt);
         sRefName = String.format("ref-%s-%d",DataFile, nTrialCnt);
         bExperimentIsSetUp = true;
@@ -549,10 +560,15 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
 
     int newStorage() throws IOException 
     {
-        return setupNewExperiment(true);
+        int res = setupNewExperiment(true);
+        if (res>0) {
+            createDescriptionFile();
+            rmi_comment_form.updateContent();
+        } 
+        return res;
     }
 
-    private void createDescriptionFile() throws FileNotFoundException, UnsupportedEncodingException, IOException {
+     void createDescriptionFile() throws FileNotFoundException, UnsupportedEncodingException, IOException {
         String newDescriptionFilePath = acqPath+"\\description.txt"; 
         
         //if ((fDescFile!=null) && (fDescFile.exists())) 
@@ -563,9 +579,9 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
         fDescFileWriter = new PrintWriter(fDescFile,"UTF-8");
         //fDescFileChannel = new FileOutputStream(fDescFile, true).getChannel();
         //fDescFileChannel.force(true);
-        File lastDescr = new File(lastCommentFile); //for ex foo.txt
+        File lastDescr = new File(lastCommentFile);
         FileReader reader = null;
-        String content="FILE : "+sAcqName+"\n\nDATE/TIME : "+expDate + " at " +expTime+"\n\nTITLE\n\nCONDITIONS\nTemp : ____°C\n\nSolutions\n\nCOMMENTS\n\nACTIONS\n\n";
+        String content="FILE : "+sAcqName+"\nDATE/TIME : "+expDate + " at " +expTime+"\n*** do not edit above this line ***\n\nTITLE\n\nCONDITIONS\nTemp :   °C\n\nSolutions\n\nCOMMENTS\n\nACTIONS\n\n";
         sDescription = content;
         if (lastDescr.exists()&&(lastDescr.length()>2))
         try {
@@ -575,19 +591,19 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
             content = new String(chars);
             int s=-1;int e=-1;
             s = content.indexOf("DATE/TIME");
-            if (s>=0) e = content.indexOf("\n\n",s)+2;
+            if (s>=0) e = content.indexOf("\n",s)+1;
             if ((s>=0)&&(e>=0))
             {
                 String sub = content.substring(s, e);
-                sDescription = content.replace(sub, "DATE/TIME : "+expDate + " at " +expTime +"\n\n");
+                sDescription = content.replace(sub, "DATE/TIME : "+expDate + " at " +expTime +"\n");
             }
             s=-1;e=-1;
             s = content.indexOf("FILE");
-            if (s>=0) e = content.indexOf("\n\n",s)+2;
+            if (s>=0) e = content.indexOf("\n",s)+1;
             if ((s>=0)&&(e>=0))
             {
                 String sub = content.substring(s, e);
-                sDescription = sDescription.replace(sub, "FILE : "+sAcqName+"\n\n");
+                sDescription = sDescription.replace(sub, "FILE : "+sAcqName+"\n");
             }
             reader.close();
         } catch (IOException e) {
@@ -595,8 +611,9 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
         } finally {
             if(reader !=null){reader.close();}
         }
+        
         lastCommentFile = newDescriptionFilePath;
-        fDescFileWriter.print(sDescription);
+        fDescFileWriter.print(sDescription.trim());
         fDescFileWriter.flush();        
         fDescFileWriter.close();
         
@@ -618,6 +635,7 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
         //if (selected) state|=2<<13;
         //else state&=~(2<<13);
         //core.setProperty(stateDeviceName, "State", String.valueOf(state));
+        
     }
   
     public class AcqTask extends TimerTask {
@@ -714,7 +732,7 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
     void runLive(boolean go) throws Exception {
         if (go)
         {
-            setBinning(binLive);
+            setBinning(String.valueOf((int)Math.pow(2,binLive)));
             setFilterExp(filterSelected);
             
         }
@@ -723,7 +741,7 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
     }
 
     void runSnap() throws Exception {
-        setBinning(binLive);
+        setBinning(String.valueOf((int)Math.pow(2,binLive)));
         setFilterExp(filterSelected);
         //app.snapSingleImage();
         List<Image> images = app.live().snap(true);
@@ -748,6 +766,8 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
         }
         //rmi_form.renderUI(_state);
     }
+      
+    
 }
 
 

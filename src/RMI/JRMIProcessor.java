@@ -171,7 +171,7 @@ boolean AnalyzeData()
     lastProcessed = 0;
        
     // Get all ROIs from ROI manager
-    if ((!rmi.bExperimentIsSetUp)&&(bOnlineAnalysis)) {JOptionPane.showMessageDialog(null,"Experimental settings are not set or initialized"); return false;} 
+    if ((!rmi.bExperimentIsSetUp)&&(bOnlineAnalysis)) {JOptionPane.showMessageDialog(null,"Please, start acquisition first."); return false;} 
     RoiManager rm = RoiManager.getInstance();
     if (rm==null){ 
         rm = new RoiManager();
@@ -199,10 +199,10 @@ boolean AnalyzeData()
         
     }
     else{
-        //temporary code
-            rm.runCommand("Open",rmi.DataHome+"\\DefaultRoiSet.zip");
-            rois = rm.getRoisAsArray();
-        //temporary code ends
+        //**********temporary code
+            //rm.runCommand("Open",rmi.DataHome+"\\DefaultRoiSet.zip");
+            //rois = rm.getRoisAsArray();
+        //************temporary code ends
         if (rois.length==0){JOptionPane.showMessageDialog(null,"No ROIs to analyze"); return false;} 
         
     }
@@ -211,23 +211,22 @@ boolean AnalyzeData()
     nBG = nG = nR = 0;
     for (int i=0; i< rois.length; i++)
     {
-        if (rois[i].getName().startsWith("bg")) nBG++;
-        if (rois[i].getName().startsWith("g")) nG++;
-        if (rois[i].getName().startsWith("r")) nR++;
+        if (rois[i].getName().toLowerCase().startsWith("bg")) nBG++;
+        if (rois[i].getName().toLowerCase().startsWith("g")) nG++;
+        if (rois[i].getName().toLowerCase().startsWith("r")) nR++;
     }
     if (nBG==0){JOptionPane.showMessageDialog(null,"Please select background ROI(s)"); return false;} 
-    //if (nG==0){JOptionPane.showMessageDialog(null,"Please ouline green cell(s)"); return false;} 
-    //if (nR==0){JOptionPane.showMessageDialog(null,"Please outline red cell(s)"); return false;} 
-    // Split them into arrays
+    if ((nG==0)&&(nR==0)){JOptionPane.showMessageDialog(null,"Nothing to do. At least one non-background ROI must be selected.\nIf you selected ROIs, check the naming."); return false;}     
+// Split them into arrays
     BG_rois = new Roi[nBG];
     G_rois = new Roi[nG];
     R_rois = new Roi[nR];
     int bc=0,gc=0,rc=0;
     for (int i=0; i< rois.length; i++)
     {
-        if (rois[i].getName().startsWith("bg")) BG_rois[bc++] = rois[i];
-        if (rois[i].getName().startsWith("g")) G_rois[gc++] = rois[i];
-        if (rois[i].getName().startsWith("r")) R_rois[rc++] = rois[i];
+        if (rois[i].getName().toLowerCase().startsWith("bg")) BG_rois[bc++] = rois[i];
+        if (rois[i].getName().toLowerCase().startsWith("g")) G_rois[gc++] = rois[i];
+        if (rois[i].getName().toLowerCase().startsWith("r")) R_rois[rc++] = rois[i];
     }
     
     if (bOnlineAnalysis)
@@ -247,6 +246,10 @@ boolean AnalyzeData()
         
         lastProcessed = 1 - (dataStore.getNumImages()/nCh - crds.getTime()); // this is to reveal if the Time axis is o or 1 based
     }
+    
+     if (nCh!=2) 
+            {JOptionPane.showMessageDialog(null,"Currently, only ratiometric analysis implemented, which expects L1 and L2 channels to be present in acquisition."); return false;} 
+    
     gplot = new Plot(dataStore.getSavePath()+" Green", "Time,min", "A.U.");
     rplot = new Plot(dataStore.getSavePath()+" Red", "Time,min", "A.U.");
         
@@ -268,26 +271,31 @@ boolean AnalyzeData()
     // get first image to retreive first timestamp and to initialize builder
     Image first_img = dataStore.getImage(pos);
     start_time = 0.0;//first_img.getMetadata().getElapsedTimeMs();
-    //start_time = first_img.getMetadata().getElapsedTimeMs();
+    if (first_img.getBytesPerPixel()!=2) 
+            {JOptionPane.showMessageDialog(null,"Cannot analyse 8-bit images. Please, change camera settings to 12-,14- or 16-bit acquisition."); return false;} 
+    
     raw_data = new Object[nCh];
     
     /////////////////////////////////////////////////////////////////////////////
     // CORRECTION FOR GFP BLEED_THROUGH
     // get GFP channel from reference image. Will be used to correct 340 and 380 
     // channels for GFP bleed-through
-    gfp_cells = new double[nG]; //allocate storage for GFP intencities
-    Object raw_ref = new Object();
-    Image gfp_img = refStore.getImage(builder.time(0).channel(rmi.FLT_G).build());
-    if (gfp_img==null) {Logger.getAnonymousLogger().log(Level.WARNING, String.format("gfp_img == null ")); return false;}
-    raw_ref = gfp_img.getRawPixels();
-    if (gfp_img.getBytesPerPixel()!=2) 
-        {JOptionPane.showMessageDialog(null,"Analyzis works only with 16-bit images. Please, change camera settings to 16-bit acquisition."); return false;} 
-    // Calculate ROIs for each GFP-expressing cell
-    for(int gfpi=0; gfpi<nG; gfpi++)
+    /*
+    if (refStore.getNumImages()>0)
     {
-        gfp_cells[gfpi] = getROIaverageRaw((short[])raw_ref,gfp_img.getWidth(),gfp_img.getHeight(),G_rois[gfpi]);     // calculate mean from ROI
+        gfp_cells = new double[nG]; //allocate storage for GFP intencities
+        Object raw_ref = new Object();
+        Image gfp_img = refStore.getImage(builder.time(0).channel(rmi.FLT_G).build());
+        if (gfp_img==null) {Logger.getAnonymousLogger().log(Level.WARNING, String.format("gfp_img == null ")); return false;}
+        raw_ref = gfp_img.getRawPixels();
+        
+        // Calculate ROIs for each GFP-expressing cell
+        for(int gfpi=0; gfpi<nG; gfpi++)
+        {
+            gfp_cells[gfpi] = getROIaverageRaw((short[])raw_ref,gfp_img.getWidth(),gfp_img.getHeight(),G_rois[gfpi]);     // calculate mean from ROI
+        }
+        gfp_340_380_coef=new double[2];
     }
-    gfp_340_380_coef=new double[2];
     if (rmi.rmi_form.bGFPCorrection.isSelected()!=true){
         gfp_340_380_coef[0]=0.0;
         gfp_340_380_coef[1]=0.0;
@@ -296,6 +304,7 @@ boolean AnalyzeData()
         gfp_340_380_coef[0]=0.22;
         gfp_340_380_coef[1]=0.25;
     }
+    */
     ////////////////////////////////////////////////////////////////////////////
 
     max_g=0;
@@ -331,7 +340,7 @@ boolean ProcessNextFrames()
             {
                  //   time_axis[lastProcessed] = lastProcessed*rmi.recInterval/60.;
                 //time_axis[lastProcessed] = (img.getMetadata().getElapsedTimeMs() - start_time)/60000;        
-                time_axis[lastProcessed] = img.getMetadata().getElapsedTimeMs()/60000;        
+                time_axis[lastProcessed] = img.getMetadata().getElapsedTimeMs()/(1000);        
             }
         }
         // for each channel calculate mean BG from all ROI
@@ -351,8 +360,8 @@ boolean ProcessNextFrames()
         {
             for(int ch=0; ch < 2; ch++)
             {
-                g_tc[gi][ch][lastProcessed] = getROIaverageRaw((short[])raw_data[ch],img.getWidth(),img.getHeight(),G_rois[gi])-
-                                                gfp_cells[gi]*gfp_340_380_coef[ch]; // here we correct for GFP bleed-through
+                g_tc[gi][ch][lastProcessed] = getROIaverageRaw((short[])raw_data[ch],img.getWidth(),img.getHeight(),G_rois[gi]);
+                                                        //- gfp_cells[gi]*gfp_340_380_coef[ch]; // here we correct for GFP bleed-through
             }
             double rel_g = (g_tc[gi][0][lastProcessed]-av_bg_tc[0][lastProcessed])/(g_tc[gi][1][lastProcessed]-av_bg_tc[1][lastProcessed]);    
             if (max_g<rel_g) max_g = rel_g;
@@ -385,8 +394,8 @@ boolean ProcessNextFrames()
     }
     rmi.rmi_form.eLastFrame.setText(String.valueOf(lastProcessed));
 
-    gplot = new Plot(dataStore.getSavePath()+" Green", "Time,min", "a.u.");
-    rplot = new Plot(dataStore.getSavePath()+" Red", "Time,min", "a.u.");
+    gplot = new Plot(dataStore.getSavePath()+" Green", "Time,sec", "a.u.");
+    rplot = new Plot(dataStore.getSavePath()+" Red", "Time,sec", "a.u.");
     
     //plot.setLimits(0, time_axis[time_axis.length-1], 0, max_r>max_g?max_r:max_g);
     gplot.setLimits(0, time_axis[lastProcessed-1], min_g, max_g); gplot.draw();
