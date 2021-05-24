@@ -148,6 +148,9 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
     private long startMilliseconds;
     private long elapsedMilliseconds;
     boolean shutterOpen;
+    Integer L1bg;
+    Integer L2bg;
+    boolean doConstBGSubtraction;
     
     public RMI() {
         super();
@@ -338,7 +341,7 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
             if (setupNewExperiment(false)==0) 
                 return 0;
         createDescriptionFile(); 
-        rmi_comment_form.updateContent();
+        //rmi_comment_form.updateContent();
         
         // Setup variables
         curTime = 0;
@@ -563,7 +566,7 @@ public class RMI implements MenuPlugin, SciJavaPlugin {
         int res = setupNewExperiment(true);
         if (res>0) {
             createDescriptionFile();
-            rmi_comment_form.updateContent();
+            //rmi_comment_form.updateContent();
         } 
         return res;
     }

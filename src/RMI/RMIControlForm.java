@@ -147,6 +147,7 @@ implements MouseListener
         bFilterGroup = new ButtonGroup();
         AnalizeGroup = new ButtonGroup();
         buttonGroupAnalysisType = new ButtonGroup();
+        jPanel12 = new JPanel();
         jTabbedPane1 = new JTabbedPane();
         jPanel1 = new JPanel();
         jPanel5 = new JPanel();
@@ -220,6 +221,12 @@ implements MouseListener
         jLabel38 = new JLabel();
         bAddGreenROIs1 = new JToggleButton();
         jLabel39 = new JLabel();
+        jPanel13 = new JPanel();
+        L2BG = new JFormattedTextField();
+        jLabel40 = new JLabel();
+        L1BG = new JFormattedTextField();
+        jLabel41 = new JLabel();
+        chkDoConstSubtraction = new JCheckBox();
         jPanel6 = new JPanel();
         jPanel3 = new JPanel();
         zoomLive = new JFormattedTextField();
@@ -276,6 +283,15 @@ implements MouseListener
         bProtocolApply = new JButton();
         bProtocolDiscard = new JButton();
         jTextField2 = new JTextField();
+
+        GroupLayout jPanel12Layout = new GroupLayout(jPanel12);
+        jPanel12.setLayout(jPanel12Layout);
+        jPanel12Layout.setHorizontalGroup(jPanel12Layout.createParallelGroup(GroupLayout.LEADING)
+            .add(0, 100, Short.MAX_VALUE)
+        );
+        jPanel12Layout.setVerticalGroup(jPanel12Layout.createParallelGroup(GroupLayout.LEADING)
+            .add(0, 100, Short.MAX_VALUE)
+        );
 
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("Ratiometric imaging");
@@ -715,6 +731,7 @@ implements MouseListener
         bShowComment.setFont(new Font("Arial", 1, 14)); // NOI18N
         bShowComment.setText("Comments");
         bShowComment.setToolTipText("Open comment window");
+        bShowComment.setEnabled(false);
         bShowComment.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 bShowCommentActionPerformed(evt);
@@ -990,14 +1007,16 @@ implements MouseListener
                     .add(jPanel14Layout.createSequentialGroup()
                         .add(jPanel14Layout.createParallelGroup(GroupLayout.LEADING)
                             .add(jLabel2)
-                            .add(jLabel3)
                             .add(jLabel25)
-                            .add(jLabel27)
+                            .add(jLabel27))
+                        .add(108, 108, 108)
+                        .add(jPanel14Layout.createParallelGroup(GroupLayout.LEADING)
+                            .add(jLabel3)
                             .add(jLabel29))
                         .add(0, 0, Short.MAX_VALUE))))
         );
         jPanel14Layout.setVerticalGroup(jPanel14Layout.createParallelGroup(GroupLayout.LEADING)
-            .add(jPanel14Layout.createSequentialGroup()
+            .add(GroupLayout.TRAILING, jPanel14Layout.createSequentialGroup()
                 .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .add(jLabel2, GroupLayout.PREFERRED_SIZE, 19, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -1111,38 +1130,76 @@ implements MouseListener
         jLabel39.setFont(new Font("Tahoma", 0, 14)); // NOI18N
         jLabel39.setText("n =");
 
+        jPanel13.setBorder(BorderFactory.createTitledBorder("Subtract constant background"));
+
+        L2BG.setText("0");
+        L2BG.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        L2BG.addFocusListener(new FocusAdapter() {
+            public void focusLost(FocusEvent evt) {
+                L2BGFocusLost(evt);
+            }
+        });
+
+        jLabel40.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        jLabel40.setText("L2 :");
+
+        L1BG.setText("0");
+        L1BG.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        L1BG.addFocusListener(new FocusAdapter() {
+            public void focusLost(FocusEvent evt) {
+                L1BGFocusLost(evt);
+            }
+        });
+
+        jLabel41.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        jLabel41.setText("L1 :");
+
+        chkDoConstSubtraction.setFont(new Font("Tahoma", 0, 14)); // NOI18N
+        chkDoConstSubtraction.setText("Do subtraction");
+        chkDoConstSubtraction.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                chkDoConstSubtractionActionPerformed(evt);
+            }
+        });
+
+        GroupLayout jPanel13Layout = new GroupLayout(jPanel13);
+        jPanel13.setLayout(jPanel13Layout);
+        jPanel13Layout.setHorizontalGroup(jPanel13Layout.createParallelGroup(GroupLayout.LEADING)
+            .add(jPanel13Layout.createSequentialGroup()
+                .addContainerGap()
+                .add(chkDoConstSubtraction)
+                .addPreferredGap(LayoutStyle.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .add(jPanel13Layout.createParallelGroup(GroupLayout.LEADING)
+                    .add(GroupLayout.TRAILING, jLabel40, GroupLayout.PREFERRED_SIZE, 32, GroupLayout.PREFERRED_SIZE)
+                    .add(GroupLayout.TRAILING, jLabel41, GroupLayout.PREFERRED_SIZE, 32, GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(LayoutStyle.UNRELATED)
+                .add(jPanel13Layout.createParallelGroup(GroupLayout.LEADING)
+                    .add(GroupLayout.TRAILING, L1BG, GroupLayout.PREFERRED_SIZE, 49, GroupLayout.PREFERRED_SIZE)
+                    .add(GroupLayout.TRAILING, L2BG, GroupLayout.PREFERRED_SIZE, 49, GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
+        );
+        jPanel13Layout.setVerticalGroup(jPanel13Layout.createParallelGroup(GroupLayout.LEADING)
+            .add(jPanel13Layout.createSequentialGroup()
+                .add(jPanel13Layout.createParallelGroup(GroupLayout.BASELINE)
+                    .add(L1BG, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .add(jLabel41))
+                .addPreferredGap(LayoutStyle.RELATED)
+                .add(jPanel13Layout.createParallelGroup(GroupLayout.BASELINE)
+                    .add(L2BG, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .add(jLabel40))
+                .add(0, 8, Short.MAX_VALUE))
+            .add(jPanel13Layout.createSequentialGroup()
+                .add(17, 17, 17)
+                .add(chkDoConstSubtraction)
+                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
         GroupLayout jPanel11Layout = new GroupLayout(jPanel11);
         jPanel11.setLayout(jPanel11Layout);
         jPanel11Layout.setHorizontalGroup(jPanel11Layout.createParallelGroup(GroupLayout.LEADING)
             .add(jPanel11Layout.createSequentialGroup()
                 .addContainerGap()
                 .add(jPanel11Layout.createParallelGroup(GroupLayout.LEADING)
-                    .add(jPanel11Layout.createSequentialGroup()
-                        .add(jPanel11Layout.createParallelGroup(GroupLayout.TRAILING)
-                            .add(progressCalc, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .add(jPanel11Layout.createSequentialGroup()
-                                .add(bGFPCorrection, GroupLayout.PREFERRED_SIZE, 124, GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(LayoutStyle.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .add(jLabel26)
-                                .addPreferredGap(LayoutStyle.RELATED)
-                                .add(eLastFrame, GroupLayout.PREFERRED_SIZE, 49, GroupLayout.PREFERRED_SIZE))
-                            .add(analysisFile)
-                            .add(GroupLayout.LEADING, jPanel11Layout.createSequentialGroup()
-                                .add(jPanel11Layout.createParallelGroup(GroupLayout.TRAILING)
-                                    .add(GroupLayout.LEADING, jRadioButton1)
-                                    .add(GroupLayout.LEADING, jRadioButton2)
-                                    .add(GroupLayout.LEADING, labelProgressCalc, GroupLayout.PREFERRED_SIZE, 334, GroupLayout.PREFERRED_SIZE)
-                                    .add(GroupLayout.LEADING, jPanel11Layout.createSequentialGroup()
-                                        .add(bOnlineAnalysis, GroupLayout.PREFERRED_SIZE, 171, GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(LayoutStyle.RELATED)
-                                        .add(bLoadData, GroupLayout.PREFERRED_SIZE, 171, GroupLayout.PREFERRED_SIZE))
-                                    .add(GroupLayout.LEADING, jLabel28))
-                                .add(0, 0, Short.MAX_VALUE))
-                            .add(GroupLayout.LEADING, jPanel11Layout.createSequentialGroup()
-                                .add(bShowROIMan)
-                                .addPreferredGap(LayoutStyle.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .add(bAnalize, GroupLayout.PREFERRED_SIZE, 168, GroupLayout.PREFERRED_SIZE)))
-                        .addContainerGap(13, Short.MAX_VALUE))
                     .add(GroupLayout.TRAILING, jPanel11Layout.createSequentialGroup()
                         .add(jPanel11Layout.createParallelGroup(GroupLayout.TRAILING)
                             .add(jPanel11Layout.createSequentialGroup()
@@ -1157,7 +1214,34 @@ implements MouseListener
                                     .add(bAddRedROIs, GroupLayout.PREFERRED_SIZE, 87, GroupLayout.PREFERRED_SIZE))))
                         .addPreferredGap(LayoutStyle.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .add(jPanel14, GroupLayout.PREFERRED_SIZE, 198, GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap())))
+                        .addContainerGap())
+                    .add(jPanel11Layout.createSequentialGroup()
+                        .add(jPanel11Layout.createParallelGroup(GroupLayout.TRAILING)
+                            .add(progressCalc, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .add(jPanel11Layout.createSequentialGroup()
+                                .add(bGFPCorrection, GroupLayout.PREFERRED_SIZE, 124, GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(LayoutStyle.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .add(jLabel26)
+                                .addPreferredGap(LayoutStyle.RELATED)
+                                .add(eLastFrame, GroupLayout.PREFERRED_SIZE, 49, GroupLayout.PREFERRED_SIZE))
+                            .add(analysisFile)
+                            .add(GroupLayout.LEADING, jPanel11Layout.createSequentialGroup()
+                                .add(bShowROIMan)
+                                .addPreferredGap(LayoutStyle.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .add(bAnalize, GroupLayout.PREFERRED_SIZE, 168, GroupLayout.PREFERRED_SIZE))
+                            .add(GroupLayout.LEADING, jPanel11Layout.createSequentialGroup()
+                                .add(jPanel11Layout.createParallelGroup(GroupLayout.TRAILING)
+                                    .add(GroupLayout.LEADING, jRadioButton1)
+                                    .add(GroupLayout.LEADING, jRadioButton2)
+                                    .add(GroupLayout.LEADING, labelProgressCalc, GroupLayout.PREFERRED_SIZE, 334, GroupLayout.PREFERRED_SIZE)
+                                    .add(GroupLayout.LEADING, jPanel11Layout.createSequentialGroup()
+                                        .add(bOnlineAnalysis, GroupLayout.PREFERRED_SIZE, 171, GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(LayoutStyle.RELATED)
+                                        .add(bLoadData, GroupLayout.PREFERRED_SIZE, 171, GroupLayout.PREFERRED_SIZE))
+                                    .add(GroupLayout.LEADING, jLabel28))
+                                .add(0, 0, Short.MAX_VALUE))
+                            .add(GroupLayout.LEADING, jPanel13, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .add(13, 13, 13))))
         );
         jPanel11Layout.setVerticalGroup(jPanel11Layout.createParallelGroup(GroupLayout.LEADING)
             .add(jPanel11Layout.createSequentialGroup()
@@ -1178,7 +1262,9 @@ implements MouseListener
                     .add(eLastFrame, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                     .add(jLabel26)
                     .add(bGFPCorrection, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .add(18, 18, 18)
+                .add(4, 4, 4)
+                .add(jPanel13, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.UNRELATED)
                 .add(jLabel38)
                 .addPreferredGap(LayoutStyle.RELATED)
                 .add(jPanel11Layout.createParallelGroup(GroupLayout.TRAILING)
@@ -1193,7 +1279,7 @@ implements MouseListener
                         .add(bAddGreenROIs)
                         .addPreferredGap(LayoutStyle.RELATED)
                         .add(bAddGreenROIs1)))
-                .add(114, 114, 114)
+                .add(18, 18, 18)
                 .add(jPanel11Layout.createParallelGroup(GroupLayout.BASELINE)
                     .add(bAnalize, GroupLayout.PREFERRED_SIZE, 33, GroupLayout.PREFERRED_SIZE)
                     .add(bShowROIMan, GroupLayout.PREFERRED_SIZE, 33, GroupLayout.PREFERRED_SIZE))
@@ -1201,7 +1287,7 @@ implements MouseListener
                 .add(labelProgressCalc)
                 .addPreferredGap(LayoutStyle.RELATED)
                 .add(progressCalc, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .add(19, 19, 19))
+                .add(58, 58, 58))
         );
 
         jTabbedPane1.addTab("Analysis", jPanel11);
@@ -2367,6 +2453,18 @@ break; //stop
         AddROIs(n,Color.GRAY,"BG");
     }//GEN-LAST:event_bAddGreenROIs1ActionPerformed
 
+    private void L1BGFocusLost(FocusEvent evt) {//GEN-FIRST:event_L1BGFocusLost
+        rmi.L1bg = Integer.valueOf(L1BG.getText());
+    }//GEN-LAST:event_L1BGFocusLost
+
+    private void L2BGFocusLost(FocusEvent evt) {//GEN-FIRST:event_L2BGFocusLost
+        rmi.L2bg = Integer.valueOf(L2BG.getText());
+    }//GEN-LAST:event_L2BGFocusLost
+
+    private void chkDoConstSubtractionActionPerformed(ActionEvent evt) {//GEN-FIRST:event_chkDoConstSubtractionActionPerformed
+        rmi.doConstBGSubtraction = chkDoConstSubtraction.isSelected();
+    }//GEN-LAST:event_chkDoConstSubtractionActionPerformed
+
     private void AddROIs(int num,Color col, String prefix)
     {
         int grid = 10;
@@ -2422,6 +2520,8 @@ break; //stop
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private ButtonGroup AnalizeGroup;
+    public JFormattedTextField L1BG;
+    public JFormattedTextField L2BG;
     private JLabel adjInterval;
     private JFormattedTextField analysisFile;
     private JToggleButton bAddGreenROIs;
@@ -2464,6 +2564,7 @@ break; //stop
     private ButtonGroup buttonGroupAnalysisType;
     private JFormattedTextField cameraDeviceName;
     private JFormattedTextField channelGroup;
+    private JCheckBox chkDoConstSubtraction;
     private JFormattedTextField dataFile;
     private JFormattedTextField dataHome;
     public JFormattedTextField eLastFrame;
@@ -2515,6 +2616,8 @@ break; //stop
     private JLabel jLabel38;
     private JLabel jLabel39;
     private JLabel jLabel4;
+    private JLabel jLabel40;
+    private JLabel jLabel41;
     private JLabel jLabel5;
     private JLabel jLabel6;
     private JLabel jLabel7;
@@ -2523,6 +2626,8 @@ break; //stop
     private JPanel jPanel1;
     private JPanel jPanel10;
     private JPanel jPanel11;
+    private JPanel jPanel12;
+    private JPanel jPanel13;
     private JPanel jPanel14;
     private JPanel jPanel2;
     private JPanel jPanel3;
@@ -2589,6 +2694,7 @@ break; //stop
                 bPause.setEnabled(false);
                 bStart.setEnabled(true);
                 bStop.setEnabled(false);
+                chkDoConstSubtraction.setEnabled(true);
                 break;
             case REC_START:
                 //if (rmi.bAcqNotFastEnough)
@@ -2600,6 +2706,7 @@ break; //stop
                 bPause.setEnabled(true);
                 bStart.setEnabled(false);
                 bStop.setEnabled(true);
+                chkDoConstSubtraction.setEnabled(false);
                 break;
             case REC_RUNNING:
                 

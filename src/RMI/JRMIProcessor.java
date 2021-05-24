@@ -215,7 +215,8 @@ boolean AnalyzeData()
         if (rois[i].getName().toLowerCase().startsWith("g")) nG++;
         if (rois[i].getName().toLowerCase().startsWith("r")) nR++;
     }
-    if (nBG==0){JOptionPane.showMessageDialog(null,"Please select background ROI(s)"); return false;} 
+    
+    if ((nBG==0)&&(!rmi.doConstBGSubtraction)){JOptionPane.showMessageDialog(null,"Please select background ROI(s) or turn on constant bacground subtraction"); return false;} 
     if ((nG==0)&&(nR==0)){JOptionPane.showMessageDialog(null,"Nothing to do. At least one non-background ROI must be selected.\nIf you selected ROIs, check the naming."); return false;}     
 // Split them into arrays
     BG_rois = new Roi[nBG];
@@ -248,7 +249,7 @@ boolean AnalyzeData()
     }
     
      if (nCh!=2) 
-            {JOptionPane.showMessageDialog(null,"Currently, only ratiometric analysis implemented, which expects L1 and L2 channels to be present in acquisition."); return false;} 
+            {JOptionPane.showMessageDialog(null,"Currently, only ratiometric analysis is implemented, which expects L1 and L2 channels to be present in acquisition."); return false;} 
     
     gplot = new Plot(dataStore.getSavePath()+" Green", "Time,min", "A.U.");
     rplot = new Plot(dataStore.getSavePath()+" Red", "Time,min", "A.U.");
@@ -343,7 +344,8 @@ boolean ProcessNextFrames()
                 time_axis[lastProcessed] = img.getMetadata().getElapsedTimeMs()/(1000);        
             }
         }
-        // for each channel calculate mean BG from all ROI
+        //if not sabtracting const background,  for each channel calculate mean BG from all ROI
+        if (!rmi.doConstBGSubtraction)
         for(int ch=0; ch < 2; ch++)
         {
             for(int bgi=0; bgi<BG_rois.length; bgi++)
@@ -363,7 +365,12 @@ boolean ProcessNextFrames()
                 g_tc[gi][ch][lastProcessed] = getROIaverageRaw((short[])raw_data[ch],img.getWidth(),img.getHeight(),G_rois[gi]);
                                                         //- gfp_cells[gi]*gfp_340_380_coef[ch]; // here we correct for GFP bleed-through
             }
-            double rel_g = (g_tc[gi][0][lastProcessed]-av_bg_tc[0][lastProcessed])/(g_tc[gi][1][lastProcessed]-av_bg_tc[1][lastProcessed]);    
+            double rel_g = 1;
+            if (!rmi.doConstBGSubtraction)
+                   rel_g = (g_tc[gi][0][lastProcessed]-av_bg_tc[0][lastProcessed])/(g_tc[gi][1][lastProcessed]-av_bg_tc[1][lastProcessed]);
+            else
+                   rel_g = (g_tc[gi][0][lastProcessed]-rmi.L1bg)/(g_tc[gi][1][lastProcessed]-rmi.L2bg);
+    
             if (max_g<rel_g) max_g = rel_g;
             if (min_g>rel_g) min_g = rel_g;
             
@@ -380,7 +387,11 @@ boolean ProcessNextFrames()
             {
                 r_tc[ri][ch][lastProcessed] = getROIaverageRaw((short[])raw_data[ch],img.getWidth(),img.getHeight(),R_rois[ri]);
             }
-            double rel_r = (r_tc[ri][0][lastProcessed]-av_bg_tc[0][lastProcessed])/(r_tc[ri][1][lastProcessed]-av_bg_tc[1][lastProcessed]);    
+            double rel_r = 1;
+            if (!rmi.doConstBGSubtraction)
+                rel_r = (r_tc[ri][0][lastProcessed]-av_bg_tc[0][lastProcessed])/(r_tc[ri][1][lastProcessed]-av_bg_tc[1][lastProcessed]);
+            else
+                rel_r = (r_tc[ri][0][lastProcessed]-rmi.L1bg)/(r_tc[ri][1][lastProcessed]-rmi.L2bg);
             if (max_r<rel_r) max_r = rel_r;
             if (min_r>rel_r) min_r = rel_r;
             
